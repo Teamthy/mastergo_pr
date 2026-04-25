@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { LayoutDashboard, Wallet, Key, User, LogOut, Sun, Moon } from "lucide-react";
-import { cn } from '@lib/utils';
+import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/ThemeContext';
 import { useAuth } from '@/lib/AuthContext';
 
