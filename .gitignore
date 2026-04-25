@@ -1,0 +1,23 @@
+
+.DS_Store
+.env
+.vscode/
+.idea/
+
+# FRONTEND (Node) 
+frontend/node_modules/
+frontend/.next/
+frontend/dist/
+frontend/build/
+frontend/.env.local
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# BACKEND (Go) 
+backend/bin/
+backend/dist/
+backend/*.exe
+backend/*.exe~
+backend/vendor/
+backend/.env
