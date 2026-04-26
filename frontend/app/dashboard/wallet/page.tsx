@@ -48,6 +48,12 @@ export default function WalletPage() {
         setLoading(true);
         try {
             const res = await fetch('/api/wallet/balance');
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(text);
+            }
+
             const data = await res.json();
 
             const fullWallet = {
@@ -95,14 +101,14 @@ export default function WalletPage() {
         return true;
     });
 
-    if (loading) return <div className="flex items-center justify-center h-[60vh] text-zinc-500 font-bold uppercase tracking-widest animate-pulse">Establishing Secure Connection...</div>;
+    if (loading) return <div className="flex items-center justify-center h-[60vh] text-zinc-500 font-bold uppercase tracking-widest animate-pulse">loading Wallet Page || Establishing Secure Connection...</div>;
 
     return (
         <div className="flex flex-col gap-10">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-4xl font-bold tracking-tighter uppercase">Vault Ledger</h1>
-                    <p className="text-zinc-500 font-medium tracking-tight">Institutional assets managed via ethers.js infrastructure.</p>
+                    <h1 className="text-4xl font-bold tracking-tighter uppercase">WELCOME TO WALLET PAGE</h1>
+
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" size="lg" onClick={() => setShowModal('deposit')} className="h-12">
@@ -118,7 +124,7 @@ export default function WalletPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="md:col-span-2 p-8 rounded-[2.5rem] bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 flex flex-col justify-between min-h-[220px] relative overflow-hidden group">
                     <div className="relative z-10 flex justify-between items-start">
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 center">
                             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Total Valuation</span>
                             <h2 className="text-5xl font-bold tracking-tighter text-white">{wallet?.balance} <span className="text-zinc-600">ETH</span></h2>
                         </div>
@@ -149,7 +155,7 @@ export default function WalletPage() {
                 </div>
 
                 {[
-                    { label: "30D Volume", value: "$842k", icon: TrendingUp, color: "text-white" },
+
                     { label: "Active Queues", value: "02", icon: Clock, color: "text-amber-500" },
                 ].map((stat, i) => (
                     <div key={i} className="p-8 rounded-[2.5rem] bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-900 flex flex-col justify-between">
@@ -296,22 +302,7 @@ export default function WalletPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 transition-all flex flex-col gap-4 text-left group">
-                                    <WalletIcon size={24} className="text-zinc-400 dark:text-zinc-500" />
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-sm uppercase tracking-tight text-black dark:text-white">Web3 Node</span>
-                                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Connect MetaMask</span>
-                                    </div>
-                                </div>
-                                <div className="p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 transition-all flex flex-col gap-4 text-left group">
-                                    <Building className="text-zinc-400 dark:text-zinc-500" size={24} />
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-sm uppercase tracking-tight text-black dark:text-white">FIAT Node</span>
-                                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">Institutional Swift</span>
-                                    </div>
-                                </div>
-                            </div>
+
 
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-3">
