@@ -5,7 +5,7 @@ import { Providers } from './providers';
 import { Navbar } from '../components/Navbar';
 
 export const metadata: Metadata = {
-  title: 'Vanguard | Institutional-Grade Ledger',
+  title: 'MY GO + NEXTJS + ETHERJS PR',
   description: 'Secure, high-performance institutional-grade Ethereum infrastructure.',
 };
 
