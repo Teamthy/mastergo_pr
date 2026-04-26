@@ -56,8 +56,9 @@ export default function SignupFlow() {
     useEffect(() => {
         if (state.matches(OnboardingState.COMPLETED)) {
             login(state.context.email);
+
         }
-    }, [state, login]);
+    }, [state, login, router]);
 
     if (state.matches(OnboardingState.COMPLETED)) {
         return (
@@ -71,7 +72,7 @@ export default function SignupFlow() {
                         Access Granted
                     </h1>
                     <p className="text-zinc-500 mt-2">
-                        Your Vanguard identity has been verified.
+                        Your  identity has been verified.
                     </p>
                 </div>
 
@@ -88,9 +89,9 @@ export default function SignupFlow() {
         switch (currentState) {
             case OnboardingState.START:
                 return {
-                    title: "Verify Identity",
-                    description: "Enter your official email to begin verification.",
-                    placeholder: "name@company.com",
+                    title: "EMAIL VERIFICATION",
+                    description: "Enter your email to begin verification.",
+                    placeholder: "name@email.com",
                 };
 
             case OnboardingState.EMAIL_ENTERED:
@@ -102,22 +103,22 @@ export default function SignupFlow() {
 
             case OnboardingState.EMAIL_VERIFIED:
                 return {
-                    title: "Legal Identity",
+                    title: "NAME DETAILS",
                     description: "Enter your full name.",
-                    placeholder: "John Doe",
+                    placeholder: "Teamthy Teethy",
                 };
 
             case OnboardingState.PROFILE_NAME:
                 return {
-                    title: "Secure Contact",
-                    description: "Used for recovery.",
-                    placeholder: "+1 555 000 0000",
+                    title: "CONTACT NUMBER",
+                    description: "Enter your phone number.",
+                    placeholder: "+2341234567",
                 };
 
             case OnboardingState.PROFILE_CONTACT:
                 return {
-                    title: "Registry Address",
-                    description: "Your jurisdiction.",
+                    title: "ADDRESS DETAILS",
+                    description: "Enter your address.",
                     placeholder: "Street, City, Country",
                 };
 
