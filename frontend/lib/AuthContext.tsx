@@ -1,56 +1,83 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { useRouter } from "next/navigation";
-
-type User = {
-    email: string;
-};
+import { createContext, useContext, useEffect, useState } from "react";
 
 type AuthContextType = {
-    user: User | null;
-    login: (email: string) => void;
+    user: any;
+    login: (email: string) => Promise<void>;
     logout: () => void;
+    loading: boolean;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    login: async () => { },
+    logout: () => { },
+    loading: true,
+});
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const router = useRouter();
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-    // restore session
+
     useEffect(() => {
-        const stored = localStorage.getItem("vanguard_user");
-        if (stored) {
-            setUser(JSON.parse(stored));
+        const token = localStorage.getItem("token");
+
+        if (token) {
+            setUser({ id: "persisted", email: "persisted" });
         }
+
+        setLoading(false);
     }, []);
 
-    const login = (email: string) => {
-        const newUser = { email };
-        setUser(newUser);
-        localStorage.setItem("vanguard_user", JSON.stringify(newUser));
-        router.push("/dashboard");
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+
+        fetch("http://localhost:8080/auth/me", {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        })
+            .then(res => {
+                if (!res.ok) throw new Error();
+                return res.json();
+            })
+            .then(data => {
+                setUser(data);
+            })
+            .catch(() => {
+                localStorage.removeItem("token");
+                setUser(null);
+            })
+            .finally(() => setLoading(false));
+    }, []);
+
+    const login = (email: string, token?: string) => {
+        const fakeUser = {
+            email,
+            id: email,
+        };
+
+        localStorage.setItem("token", token ?? "dev-token");
+        setUser(fakeUser);
     };
 
     const logout = () => {
+        localStorage.removeItem("token");
         setUser(null);
-        localStorage.removeItem("vanguard_user");
-        router.push("/");
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
-}
+};
 
-export function useAuth() {
-    const ctx = useContext(AuthContext);
-    if (!ctx) {
-        throw new Error("useAuth must be used inside AuthProvider");
-    }
-    return ctx;
-}
+export const useAuth = () => useContext(AuthContext);
