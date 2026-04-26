@@ -21,29 +21,30 @@ export default function ApiKeysPage() {
 
     const fetchKeys = async () => {
         try {
-            const data = await fetchJSON('/api/apikeys');
+            const res = await apiFetch('/api/v1/apikeys');
+            const data = await res.json();
             setKeys(data || []);
         } catch (e) {
             console.error(e);
-            // Fallback for demo
             setKeys([]);
         }
     };
 
     const handleCreate = async () => {
         try {
-            const res = await apiFetch('/apikeys', {
+            const res = await apiFetch('/api/v1/apikeys', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name }),
             });
-            const data = await fetchJSON(res.url);
-            // The API returns secretKey in the field 'secretKey' but the types might expect 'secret'
+
+            const data = await res.json();
+
             setNewKeyData({
-                publicKey: data.publicKey,
-                secret: data.secretKey,
+                publicKey: data.public_key,
+                secret: data.secret_key,
                 name: data.name
             });
+
             setName("");
             fetchKeys();
         } catch (e) {
@@ -53,7 +54,7 @@ export default function ApiKeysPage() {
 
     const handleDelete = async (id: string) => {
         try {
-            await apiFetch(`/apikeys/${id}`, { method: 'DELETE' });
+            await apiFetch(`/api/v1/apikeys/${id}`, { method: 'DELETE' });
             fetchKeys();
         } catch (e) {
             console.error(e);
