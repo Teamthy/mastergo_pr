@@ -1,28 +1,18 @@
-'use client';
+'use client'
 
-import React, { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from "@/lib/AuthContext"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
-    const { user, isLoading } = useAuth();
-    const router = useRouter();
+export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+    const { user } = useAuth()
+    const router = useRouter()
 
     useEffect(() => {
-        if (!isLoading && !user) {
-            router.push('/auth/signup');
-        }
-    }, [user, isLoading, router]);
+        if (!user) router.push("/auth/signup")
+    }, [user])
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh] text-zinc-500 font-bold uppercase tracking-widest animate-pulse">
-                Authenticating Secure Session...
-            </div>
-        );
-    }
+    if (!user) return null
 
-    if (!user) return null;
-
-    return <>{children}</>;
+    return <>{children}</>
 }
