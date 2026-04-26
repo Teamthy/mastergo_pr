@@ -21,7 +21,7 @@ func (h *ApiKeyHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 	userIDStr, ok := r.Context().Value("user_id").(string)
 	if !ok {
-		http.Error(w, "Unauthorized: User context missing", http.StatusUnauthorized)
+		writeError(w, http.StatusUnauthorized, "Unauthorized: User context missing")
 		return
 	}
 
