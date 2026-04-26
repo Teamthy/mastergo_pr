@@ -7,16 +7,16 @@ import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
     const stats = [
-        { label: "Total Asset Value", value: "$428,192.00", change: "+12.4%", icon: Wallet },
+        { label: "WALLET BALANCE", value: "ETH 10,1000", change: "+12.4%", icon: Wallet },
         { label: "Active API Keys", value: "08", change: "Stable", icon: Key },
-        { label: "Network Activity", value: "High", change: "99.9% Uptime", icon: Activity },
+        //{ label: "Network Activity", value: "High", change: "99.9% Uptime", icon: Activity },
     ];
 
     return (
         <div className="flex flex-col gap-12">
             <header className="flex flex-col gap-1">
-                <h1 className="text-4xl font-bold tracking-tighter uppercase">Systems Overview</h1>
-                <p className="text-zinc-500 font-medium tracking-tight">Welcome back. All systems are operational.</p>
+                <h1 className="text-4xl font-bold tracking-tighter uppercase">WELCOME TO DASHBOARD</h1>
+
             </header>
 
             {/* Stats Grid */}
@@ -69,29 +69,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="rounded-3xl border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/20 p-8 flex flex-col gap-6">
-                    <h2 className="text-sm font-bold uppercase tracking-widest text-black dark:text-white">Recent Security Logs</h2>
-                    <div className="flex flex-col gap-4">
-                        {[
-                            { event: "New API Key Created", time: "2m ago", status: "Success" },
-                            { event: "Login from New IP", time: "1h ago", status: "Warning" },
-                            { event: "Wallet Sync Successful", time: "4h ago", status: "Success" },
-                            { event: "Withdrawal Completed", time: "1d ago", status: "Success" },
-                        ].map((log, i) => (
-                            <div key={i} className="flex justify-between items-center border-b border-zinc-100 dark:border-zinc-900 pb-4 last:border-0 last:pb-0">
-                                <div className="flex flex-col gap-0.5">
-                                    <span className="text-sm font-medium text-black dark:text-white">{log.event}</span>
-                                    <span className="text-[10px] uppercase font-bold text-zinc-400 dark:text-zinc-600">{log.time}</span>
-                                </div>
-                                <span className={cn(
-                                    "w-2 h-2 rounded-full",
-                                    log.status === "Success" ? "bg-emerald-500" : "bg-amber-500"
-                                )} />
-                            </div>
-                        ))}
-                    </div>
-                    <Button variant="outline" size="sm" className="mt-4 w-full">View Audit Log</Button>
-                </div>
+
             </div>
         </div>
     );
