@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { Plus, Copy, Check, Trash2, AlertCircle } from "lucide-react";
 import { Button, Input } from "@/lib/components/ui";
 import { ApiKey } from "@/lib/types";
+import { fetchJSON } from "@/lib/fetcher";
+import { apiFetch } from "@/lib/api";
 
 export default function ApiKeysPage() {
     const [keys, setKeys] = useState<ApiKey[]>([]);
@@ -19,9 +21,8 @@ export default function ApiKeysPage() {
 
     const fetchKeys = async () => {
         try {
-            const res = await fetch('/api/apikeys');
-            const data = await res.json();
-            setKeys(data);
+            const data = await fetchJSON('/api/apikeys');
+            setKeys(data || []);
         } catch (e) {
             console.error(e);
             // Fallback for demo
@@ -31,12 +32,12 @@ export default function ApiKeysPage() {
 
     const handleCreate = async () => {
         try {
-            const res = await fetch('/api/apikeys', {
+            const res = await apiFetch('/apikeys', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name }),
             });
-            const data = await res.json();
+            const data = await fetchJSON(res.url);
             // The API returns secretKey in the field 'secretKey' but the types might expect 'secret'
             setNewKeyData({
                 publicKey: data.publicKey,
@@ -52,7 +53,7 @@ export default function ApiKeysPage() {
 
     const handleDelete = async (id: string) => {
         try {
-            await fetch(`/api/apikeys/${id}`, { method: 'DELETE' });
+            await apiFetch(`/apikeys/${id}`, { method: 'DELETE' });
             fetchKeys();
         } catch (e) {
             console.error(e);
