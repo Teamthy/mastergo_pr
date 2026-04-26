@@ -1,7 +1,9 @@
-export async function apiFetch(url: string, options: RequestInit = {}) {
-    const token = localStorage.getItem("token");
+export const apiFetch = (url: string, options: RequestInit = {}) => {
+    const token = typeof window !== "undefined"
+        ? localStorage.getItem("token")
+        : null;
 
-    const res = await fetch(`http://localhost:8080${url}`, {
+    return fetch(`http://localhost:8080${url}`, {
         ...options,
         headers: {
             "Content-Type": "application/json",
@@ -9,6 +11,4 @@ export async function apiFetch(url: string, options: RequestInit = {}) {
             ...(options.headers || {}),
         },
     });
-
-    return res;
-}
+};
