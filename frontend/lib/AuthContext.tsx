@@ -1,10 +1,11 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { authAPI } from "./api";
 
 type AuthContextType = {
     user: any;
-    login: (email: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<void>;
     logout: () => void;
     loading: boolean;
 };
@@ -20,17 +21,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
-
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-
-        if (token) {
-            setUser({ id: "persisted", email: "persisted" });
-        }
-
-        setLoading(false);
-    }, []);
-
+    // restore session
     useEffect(() => {
         const token = localStorage.getItem("token");
 
@@ -39,18 +30,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             return;
         }
 
-        fetch("http://localhost:8080/auth/me", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        })
-            .then(res => {
-                if (!res.ok) throw new Error();
-                return res.json();
-            })
-            .then(data => {
-                setUser(data);
-            })
+        authAPI
+            .me(token)
+            .then(setUser)
             .catch(() => {
                 localStorage.removeItem("token");
                 setUser(null);
@@ -58,14 +40,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .finally(() => setLoading(false));
     }, []);
 
-    const login = (email: string, token?: string) => {
-        const fakeUser = {
-            email,
-            id: email,
-        };
+    const login = async (email: string, password: string) => {
+        const { token, user } = await authAPI.login(email, password);
 
-        localStorage.setItem("token", token ?? "dev-token");
-        setUser(fakeUser);
+        localStorage.setItem("token", token);
+        setUser(user);
     };
 
     const logout = () => {
