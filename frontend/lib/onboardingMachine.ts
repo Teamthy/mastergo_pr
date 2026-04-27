@@ -1,71 +1,39 @@
 import { createMachine, assign } from "xstate";
-import { OnboardingState } from "./types";
 
 export const onboardingMachine = createMachine({
-    id: "onboarding",
-    initial: OnboardingState.START,
-
+    id: "signup",
+    initial: "email",
     context: {
         email: "",
-        name: "",
-        contact: "",
-        address: "",
+        password: "",
+        otp: "",
     },
 
     states: {
-        [OnboardingState.START]: {
+        email: {
             on: {
                 SUBMIT_EMAIL: {
-                    target: OnboardingState.EMAIL_ENTERED,
+                    target: "otp",
                     actions: assign({
                         email: (_, e: any) => e.email,
+                        password: (_, e: any) => e.password,
                     }),
                 },
             },
         },
 
-        [OnboardingState.EMAIL_ENTERED]: {
+        otp: {
             on: {
                 VERIFY_OTP: {
-                    target: OnboardingState.EMAIL_VERIFIED,
-                },
-            },
-        },
-
-        [OnboardingState.EMAIL_VERIFIED]: {
-            on: {
-                SUBMIT_NAME: {
-                    target: OnboardingState.PROFILE_NAME,
+                    target: "completed",
                     actions: assign({
-                        name: (_, e: any) => e.name,
+                        otp: (_, e: any) => e.otp,
                     }),
                 },
             },
         },
 
-        [OnboardingState.PROFILE_NAME]: {
-            on: {
-                SUBMIT_CONTACT: {
-                    target: OnboardingState.PROFILE_CONTACT,
-                    actions: assign({
-                        contact: (_, e: any) => e.contact,
-                    }),
-                },
-            },
-        },
-
-        [OnboardingState.PROFILE_CONTACT]: {
-            on: {
-                SUBMIT_ADDRESS: {
-                    target: OnboardingState.COMPLETED,
-                    actions: assign({
-                        address: (_, e: any) => e.address,
-                    }),
-                },
-            },
-        },
-
-        [OnboardingState.COMPLETED]: {
+        completed: {
             type: "final",
         },
     },
