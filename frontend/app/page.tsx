@@ -4,16 +4,25 @@ import { motion } from "framer-motion";
 import { ArrowRight, Shield, Zap, Globe, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default function Home() {
-  const { user } = useAuth();
+
+export default function HomePage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+
+  if (loading) return null;
 
   return (
     <div className="flex flex-col gap-32 pt-20">
-      {/* Hero Section */}
+
+
+
+      {/* Landing Page (only if logged in or before auth) */}
       <section className="relative overflow-hidden">
         <div className="flex flex-col items-center text-center gap-12 relative z-10">
-
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -21,11 +30,16 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="text-6xl md:text-9xl font-bold tracking-tighter leading-[0.85] uppercase max-w-4xl"
           >
-            AUTH SYSTEM  <br />
-            <span className="text-zinc-400">API + ETH WALLET PR</span>
+            AUTH SYSTEM <br />
+            <span className="text-zinc-400">
+              API + ETH<br />
+            </span>
+
+            <span className="text-zinc-600">
+
+              WALLET PR
+            </span>
           </motion.h1>
-
-
 
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -41,19 +55,16 @@ export default function Home() {
                 </button>
               </Link>
             ) : (
-              <Link href="/auth/signup">
-                <button className="h-14 px-8 text-lg rounded-xl bg-black text-white flex items-center rounded-xl border border-zinc-300">
-                  Enter Vanguard
+              <Link href="/auth">
+                <button className="h-14 px-8 text-lg rounded-xl bg-white text-black flex items-center">
+                  ENTER MY APP
                   <ArrowRight className="ml-2" size={20} />
                 </button>
               </Link>
             )}
-
-
           </motion.div>
         </div>
 
-        {/* Background */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-zinc-200 dark:bg-zinc-900/20 blur-[120px] rounded-full -z-10" />
       </section>
 
@@ -99,6 +110,7 @@ export default function Home() {
           </motion.div>
         ))}
       </section>
+
     </div>
   );
 }
