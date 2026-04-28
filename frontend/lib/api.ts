@@ -1,47 +1,137 @@
-const API = "http://localhost:8080";
+const API = "http://localhost:3001";
+
+// Helper function to handle API responses
+const handleResponse = async (res: Response) => {
+  const contentType = res.headers.get("content-type");
+  let data: any = null;
+
+  if (contentType && contentType.includes("application/json")) {
+    data = await res.json();
+  } else {
+    data = await res.text();
+  }
+
+  if (!res.ok) {
+    throw {
+      status: res.status,
+      response: { data },
+    };
+  }
+  return data;
+};
+
+// Helper function to make requests
+const apiRequest = async (
+  method: string,
+  url: string,
+  body?: any,
+  token?: string
+) => {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+console.log("API CALL →", url);
+
+const res = await fetch(url, {
+  method,
+  headers,
+  body: method !== "GET" && body ? JSON.stringify(body) : undefined,
+});
+  return handleResponse(res);
+};
 
 export const authAPI = {
-    signup: async (email: string, password: string) => {
-        const res = await fetch(`${API}/auth/signup`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        });
+  // Signup with name, email, and password
+  signup: async (data: {
+    first_name: string;
+    last_name: string;
+    email: string;
+    password: string;
+    confirm_password: string;
+  }) => {
+    return apiRequest("POST", `${API}/auth/signup`, data);
+  },
 
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-    },
+  // Login with email and password
+  login: async (email: string, password: string) => {
+    return apiRequest("POST", `${API}/auth/login`, { email, password });
+  },
 
-    verifyOTP: async (email: string, otp: string) => {
-        const res = await fetch(`${API}/auth/verify-email`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, otp }),
-        });
+  // Verify email with OTP
+  verifyEmail: async (email: string, otp: string) => {
+    return apiRequest("POST", `${API}/auth/verify-email`, { email, otp });
+  },
 
-        if (!res.ok) throw new Error(await res.text());
-        return res.json();
-    },
+  // Resend OTP
+  resendOTP: async (email: string) => {
+    return apiRequest("POST", `${API}/auth/resend-otp`, { email });
+  },
 
-    login: async (email: string, password: string) => {
-        const res = await fetch(`${API}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-        });
+  // Get current user profile (requires authentication)
+  me: async (token: string) => {
+    return apiRequest("GET", `${API}/auth/me`, undefined, token);
+  },
 
-        if (!res.ok) throw new Error(await res.text());
-        return res.json(); // { token, user }
-    },
+  // Update profile with phone and address (requires authentication)
+  updateProfile: async (
+    token: string,
+    data: { phone: string; address: string }
+  ) => {
+    return apiRequest("PATCH", `${API}/auth/profile`, data, token);
+  },
 
-    me: async (token: string) => {
-        const res = await fetch(`${API}/auth/me`, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
+  // Check if email is available (using query parameter)
+  checkEmailAvailability: async (email: string) => {
+    try {
+      return await apiRequest("GET", `${API}/auth/email-available?email=${encodeURIComponent(email)}`);
+    } catch (err: any) {
+      // If query parameter fails, return available=true (assume available)
+      console.warn("Email availability check failed:", err);
+      return { available: true };
+    }
+  },
 
-        if (!res.ok) throw new Error("unauthorized");
-        return res.json();
-    },
+  // Get password strength (using query parameter)
+  getPasswordStrength: async (password: string) => {
+    try {
+      const response = await apiRequest("GET", `${API}/auth/password-strength?password=${encodeURIComponent(password)}`);
+      return response;
+    } catch (err: any) {
+      // If query parameter fails, evaluate locally
+      console.warn("Password strength check failed:", err);
+      return { strength: evaluateLocalPasswordStrength(password) };
+    }
+  },
+
+  // Logout (optional backend call)
+  logout: async (token: string) => {
+    try {
+      return await apiRequest("POST", `${API}/auth/logout`, {}, token);
+    } catch (err) {
+      // Logout is not critical if backend fails
+      console.warn("Logout failed:", err);
+      return { message: "Logged out" };
+    }
+  },
 };
+
+// Local password strength evaluation (fallback)
+function evaluateLocalPasswordStrength(password: string): "weak" | "medium" | "strong" {
+  let score = 0;
+
+  if (password.length >= 12) score++;
+  if (password.length >= 16) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
+
+  if (score <= 2) return "weak";
+  if (score <= 4) return "medium";
+  return "strong";
+}
