@@ -9,12 +9,13 @@ import (
 func SetupRouter(
 	authHandler *handler.AuthHandler,
 	walletHandler *handler.WalletHandler,
+	jwtSecret string,
 ) *chi.Mux {
 
 	r := chi.NewRouter()
 
 	r.Route("/api/v1", func(r chi.Router) {
-		AuthRoutes(r, authHandler)
+		AuthRoutes(r, authHandler, jwtSecret)
 		WalletRoutes(r, walletHandler)
 	})
 
