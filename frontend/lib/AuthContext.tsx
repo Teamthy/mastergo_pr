@@ -114,15 +114,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
         confirm_password: confirmPassword,
       });
-    } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || "Signup failed";
-      setError(errorMsg);
-      throw err;
-    }
-  };
-
-  const verifyEmail = async (email: string, otp: string) => {
-    try {
       // Don't set user/token yet - they need to verify email first
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || err.message || "Signup failed";
@@ -135,8 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setError(null);
       await authAPI.verifyEmail(email, otp);
-      // After verification, auto-login
-      // This will be handled by the frontend flow
+      // After verification, auto-login will be handled by the frontend flow
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || err.message || "Verification failed";
       setError(errorMsg);
@@ -190,7 +180,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
- 
+  const getPasswordStrength = async (
+    password: string
+  ): Promise<"weak" | "medium" | "strong"> => {
+    try {
+      setError(null);
+      const response = await authAPI.getPasswordStrength(password);
+      return response.strength;
+    } catch (err: any) {
+      console.error("Failed to check password strength:", err);
+      // Fall back to local evaluation
+      return evaluateLocalPasswordStrength(password);
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -206,12 +208,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         updateProfile,
         logout,
         checkEmailAvailable,
-       
+        getPasswordStrength,
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 };
+
+// Local password strength evaluation (fallback)
+function evaluateLocalPasswordStrength(password: string): "weak" | "medium" | "strong" {
+  let score = 0;
+
+  if (password.length >= 12) score++;
+  if (password.length >= 16) score++;
+  if (/[A-Z]/.test(password)) score++;
+  if (/[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) score++;
+
+  if (score <= 2) return "weak";
+  if (score <= 4) return "medium";
+  return "strong";
+}
 
 export const useAuth = () => useContext(AuthContext);
