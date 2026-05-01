@@ -1,0 +1,111 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: mastergo_postgres
+    environment:
+      POSTGRES_USER: mastergo
+      POSTGRES_PASSWORD: mastergo_dev_password
+      POSTGRES_DB: mastergo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U mastergo" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mastergo_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: mastergo_redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mastergo_network
+
+  # Ethereum Node (Ganache for local development)
+  ganache:
+    image: trufflesuite/ganache:latest
+    container_name: mastergo_ganache
+    ports:
+      - "8545:8545"
+    environment:
+      - MNEMONIC=test test test test test test test test test test test junk
+      - NETWORK_ID=1337
+    volumes:
+      - ganache_data:/data
+    networks:
+      - mastergo_network
+    command:
+      - ganache
+      - --host=0.0.0.0
+      - --port=8545
+      - --deterministic
+      - --db=/data
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mastergo_backend
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: postgres://mastergo:mastergo_dev_password@postgres:5432/mastergo_db
+      JWT_SECRET: dev_jwt_secret_change_in_production_32_char_
+      MASTER_KEY: ZGV2X21hc3Rlcl9rZXlfY2hhbmdlX2luX3Byb2R1Y3Rpb25fMzIwYjY0
+      REDIS_URL: redis:6379
+      ETH_RPC_URL: http://ganache:8545
+      PORT: 8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ganache:
+        condition: service_started
+    networks:
+      - mastergo_network
+    command: go run cmd/api/main.go
+
+  # Frontend Application
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mastergo_frontend
+    ports:
+      - "3001:3001"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    depends_on:
+      - backend
+    networks:
+      - mastergo_network
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  ganache_data:
+
+networks:
+  mastergo_network:
+    driver: bridge
