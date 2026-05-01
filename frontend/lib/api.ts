@@ -1,4 +1,4 @@
-const API = "http://localhost:3001";
+const API = "http://localhost:8080";
 
 // Helper function to handle API responses
 const handleResponse = async (res: Response) => {
@@ -135,3 +135,36 @@ function evaluateLocalPasswordStrength(password: string): "weak" | "medium" | "s
   if (score <= 4) return "medium";
   return "strong";
 }
+
+// Fetch wrapper with authentication token support
+export const apiFetch = async (
+  url: string,
+  options?: RequestInit & { token?: string }
+): Promise<Response> => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const headers: Record<string, string> = {};
+  
+  // Copy existing headers if they're a plain object
+  if (options?.headers && typeof options.headers === 'object' && !Array.isArray(options.headers)) {
+    Object.entries(options.headers as Record<string, string>).forEach(([key, value]) => {
+      headers[key] = String(value);
+    });
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const fullUrl = url.startsWith('http') ? url : `${API}${url}`;
+  
+  const res = await fetch(fullUrl, {
+    ...options,
+    headers,
+  });
+
+  if (!res.ok) {
+    throw new Error(`API error: ${res.status}`);
+  }
+
+  return res;
+};
