@@ -69,11 +69,16 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// ✅ CORS HERE
+	// ✅ CORS Configuration
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins: []string{
+			"http://localhost:3001",
+			"http://localhost:3000",
+			"http://127.0.0.1:3001",
+			"http://127.0.0.1:3000",
+		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"*"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Requested-With"},
 		AllowCredentials: true,
 	}))
 
@@ -119,10 +124,10 @@ func main() {
 	})
 
 	server := &http.Server{
-		Addr:    ":3001",
+		Addr:    ":" + cfg.Port,
 		Handler: r,
 	}
 
-	log.Println("server running on :3001")
+	log.Printf("server running on :%s", cfg.Port)
 	log.Fatal(server.ListenAndServe())
 }
