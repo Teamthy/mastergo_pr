@@ -34,16 +34,16 @@ export const onboardingMachine = createMachine({
       on: {
         SUBMIT_NAME: {
           target: "credentials",
-          actions: assign({
-            firstName: (_, e: any) => e?.firstName ?? "",
-            lastName: (_, e: any) => e?.lastName ?? "",
-            error: () => "",
-          }),
+          actions: assign(({ event }: any) => ({
+            firstName: event.firstName?.trim() ?? "",
+            lastName: event.lastName?.trim() ?? "",
+            error: "",
+          })),
         },
         SET_ERROR: {
-          actions: assign({
-            error: (_, e: any) => e?.error ?? "",
-          }),
+          actions: assign(({ event }: any) => ({
+            error: event.error ?? "",
+          })),
         },
       },
     },
@@ -53,22 +53,22 @@ export const onboardingMachine = createMachine({
         BACK: "name",
         SUBMIT_CREDENTIALS: {
           target: "otp",
-          actions: assign({
-            email: (_, e: any) => e?.email ?? "",
-            password: (_, e: any) => e?.password ?? "",
-            confirmPassword: (_, e: any) => e?.confirmPassword ?? "",
-            error: () => "",
-          }),
+          actions: assign(({ event }: any) => ({
+            email: event.email ?? "",
+            password: event.password ?? "",
+            confirmPassword: event.confirmPassword ?? "",
+            error: "",
+          })),
         },
         UPDATE_PASSWORD_STRENGTH: {
-          actions: assign({
-            passwordStrength: (_, e: any) => e?.strength ?? "weak",
-          }),
+          actions: assign(({ event }: any) => ({
+            passwordStrength: event.strength ?? "weak",
+          })),
         },
         SET_ERROR: {
-          actions: assign({
-            error: (_, e: any) => e?.error ?? "",
-          }),
+          actions: assign(({ event }: any) => ({
+            error: event.error ?? "",
+          })),
         },
       },
     },
@@ -78,20 +78,20 @@ export const onboardingMachine = createMachine({
         BACK: "credentials",
         VERIFY_OTP: {
           target: "profile",
-          actions: assign({
-            otp: (_, e: any) => e?.otp ?? "",
-            error: () => "",
-          }),
+          actions: assign(({ event }: any) => ({
+            otp: event.otp ?? "",
+            error: "",
+          })),
         },
         RESEND_OTP: {
-          actions: assign({
-            error: () => "",
-          }),
+          actions: assign(() => ({
+            error: "",
+          })),
         },
         SET_ERROR: {
-          actions: assign({
-            error: (_, e: any) => e?.error ?? "",
-          }),
+          actions: assign(({ event }: any) => ({
+            error: event.error ?? "",
+          })),
         },
       },
     },
@@ -101,16 +101,16 @@ export const onboardingMachine = createMachine({
         BACK: "otp",
         SUBMIT_PROFILE: {
           target: "completed",
-          actions: assign({
-            phone: (_, e: any) => e?.phone ?? "",
-            address: (_, e: any) => e?.address ?? "",
-            error: () => "",
-          }),
+          actions: assign(({ event }: any) => ({
+            phone: event.phone ?? "",
+            address: event.address ?? "",
+            error: "",
+          })),
         },
         SET_ERROR: {
-          actions: assign({
-            error: (_, e: any) => e?.error ?? "",
-          }),
+          actions: assign(({ event }: any) => ({
+            error: event.error ?? "",
+          })),
         },
       },
     },
