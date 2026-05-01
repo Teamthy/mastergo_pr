@@ -110,8 +110,10 @@ export default function SignupFlow() {
         setLoading(true);
 
         try {
-            await updateProfile(phone, address);
+            // Login first to get JWT token
             await login(state.context.email, state.context.password);
+            // Then update profile with authenticated session
+            await updateProfile(phone, address);
             send({
                 type: "SUBMIT_PROFILE",
                 phone,

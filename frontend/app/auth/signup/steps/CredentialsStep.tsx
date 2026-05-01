@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { PasswordStrengthMeter } from '@/components/PasswordStrengthMeter';
 
 
 interface CredentialsStepProps {
@@ -128,7 +129,7 @@ export default function CredentialsStep({
           <p className="mt-1 text-sm text-red-600">{errors.password}</p>
         )}
 
-        
+        <PasswordStrengthMeter password={password} />
       </div>
 
       <div>
