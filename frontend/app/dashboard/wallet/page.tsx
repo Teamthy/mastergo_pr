@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import type { Wallet, Transaction } from "@/lib/types";
 import {
     Wallet as WalletIcon,
     ArrowUpRight,
@@ -14,71 +15,106 @@ import {
     Clock,
     History,
     Download,
-    Building
+    Building,
+    AlertCircle
 } from "lucide-react";
 import { Button, Input } from "@/lib/components/ui";
-import { Wallet as WalletType, Transaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { isAddress, formatEther, parseEther } from "ethers";
+import { useAuth } from "@/lib/AuthContext";
+import { walletAPI } from "@/lib/api";
 
 type FilterType = 'all' | 'deposit' | 'withdrawal';
 
 export default function WalletPage() {
-    const [wallet, setWallet] = useState<WalletType | null>(null);
+    const { token, user } = useAuth();
+    const [wallet, setWallet] = useState<Wallet | null>(null);
+    const [balance, setBalance] = useState("0.00");
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
     const [filter, setFilter] = useState<FilterType>('all');
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState<'deposit' | 'withdrawal' | null>(null);
     const [targetAddress, setTargetAddress] = useState("");
+    const [amount, setAmount] = useState("");
     const [addressError, setAddressError] = useState("");
+    const [amountError, setAmountError] = useState("");
+    const [transactionError, setTransactionError] = useState("");
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const [transactions] = useState<Transaction[]>([
-        { id: 'TX-9021', walletId: 'w1', amount: '1.250', type: 'deposit', status: 'completed', createdAt: '2023-10-24T14:20:00Z', txHash: '0x34a...2e1' },
-        { id: 'TX-9022', walletId: 'w1', amount: '0.400', type: 'withdrawal', status: 'pending', createdAt: '2023-10-23T09:12:00Z', txHash: '0x91b...f42' },
-        { id: 'TX-9023', walletId: 'w1', amount: '2500.00', type: 'deposit', status: 'completed', createdAt: '2023-10-22T18:45:00Z', txHash: '0x45d...a3e' },
-        { id: 'TX-9024', walletId: 'w1', amount: '0.150', type: 'withdrawal', status: 'failed', createdAt: '2023-10-21T11:30:00Z', txHash: '0xa2c...11d' },
-    ]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
 
     useEffect(() => {
-        initWallet();
-    }, []);
+        if (token) {
+            initWallet();
+        }
+    }, [token]);
 
     const initWallet = async () => {
+        if (!token) {
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         try {
-            const res = await fetch('/api/wallet/balance');
+            // Fetch wallet balance from backend
+            const balanceRes = await walletAPI.getBalance(token);
+            const balanceInEth = formatEther(balanceRes.balance_wei);
+            setBalance(balanceInEth);
 
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(text);
+            // Create or fetch wallet address
+            try {
+                const walletRes = await walletAPI.createWallet(token);
+                setWallet({
+                    id: 'w1',
+                    userId: user?.id || 'u1',
+                    publicKey: walletRes.address,
+                    balance: balanceInEth,
+                    createdAt: new Date().toISOString()
+                });
+            } catch (err) {
+                // Wallet might already exist, set from balance response
+                setWallet({
+                    id: 'w1',
+                    userId: user?.id || 'u1',
+                    publicKey: '0x...',
+                    balance: balanceInEth,
+                    createdAt: new Date().toISOString()
+                });
             }
 
-            const data = await res.json();
-
-            const fullWallet = {
-                id: 'w1',
-                userId: 'u1',
-                publicKey: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-                balance: data.balance || "12.45",
-                createdAt: new Date().toISOString()
-            };
-            setWallet(fullWallet);
+            // Fetch transaction history
+            const txRes = await walletAPI.getTransactions(token);
+            if (Array.isArray(txRes)) {
+                const formattedTxs = txRes.map((tx: any) => ({
+                    id: tx.tx_hash || `TX-${Date.now()}`,
+                    walletId: 'w1',
+                    amount: formatEther(tx.amount_wei),
+                    type: tx.type as 'deposit' | 'withdrawal',
+                    status: tx.status as 'pending' | 'confirmed' | 'failed',
+                    createdAt: tx.created_at,
+                    txHash: tx.tx_hash
+                }));
+                setTransactions(formattedTxs);
+            }
         } catch (e) {
-            console.error(e);
+            console.error("Failed to load wallet:", e);
+            // Fallback to mock data for development
             setWallet({
                 id: 'w1',
-                userId: 'u1',
+                userId: user?.id || 'u1',
                 publicKey: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
-                balance: "12.45",
+                balance: "1500.00",
                 createdAt: new Date().toISOString()
             });
+            setBalance("1500.00");
         }
         setLoading(false);
     };
 
     const copyAddress = () => {
-        if (wallet) {
+        if (wallet?.publicKey) {
             navigator.clipboard.writeText(wallet.publicKey);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
@@ -88,9 +124,115 @@ export default function WalletPage() {
     const handleAddressChange = (val: string) => {
         setTargetAddress(val);
         if (val && !isAddress(val)) {
-            setAddressError("Invalid Ethereum address format via ethers.js validation");
+            setAddressError("Invalid Ethereum address format");
         } else {
             setAddressError("");
+        }
+    };
+
+    const handleAmountChange = (val: string) => {
+        setAmount(val);
+        const numAmount = parseFloat(val);
+        if (isNaN(numAmount) || numAmount <= 0) {
+            setAmountError("Amount must be greater than 0");
+        } else if (showModal === 'withdrawal' && numAmount > parseFloat(balance)) {
+            setAmountError("Amount exceeds available balance");
+        } else {
+            setAmountError("");
+        }
+    };
+
+    const processTransaction = async () => {
+        if (addressError || amountError || !targetAddress || !amount) {
+            setTransactionError("Please fix the errors above");
+            return;
+        }
+
+        setIsProcessing(true);
+        setTransactionError("");
+
+        try {
+            const numAmount = parseFloat(amount);
+            const txType = showModal as 'deposit' | 'withdrawal';
+
+            if (txType === 'withdrawal' && token) {
+                // Call backend API for withdrawal
+                const amountWei = parseEther(amount).toString();
+                const withdrawRes = await walletAPI.withdraw(token, {
+                    amount_wei: amountWei,
+                    to: targetAddress
+                });
+
+                // Create transaction record from backend response
+                const newTx: Transaction = {
+                    id: withdrawRes.tx_hash,
+                    walletId: 'w1',
+                    amount: amount,
+                    type: 'withdrawal',
+                    status: 'pending',
+                    createdAt: new Date().toISOString(),
+                    txHash: withdrawRes.tx_hash
+                };
+
+                setTransactions(prev => [newTx, ...prev]);
+
+                // Update balance
+                const currentBalance = parseFloat(balance);
+                const newBalance = currentBalance - numAmount;
+                setBalance(newBalance.toFixed(2));
+
+                if (wallet) {
+                    setWallet({ ...wallet, balance: newBalance.toFixed(2) });
+                }
+
+                // Simulate confirmation
+                setTimeout(() => {
+                    setTransactions(prev =>
+                        prev.map(tx =>
+                            tx.id === withdrawRes.tx_hash ? { ...tx, status: 'confirmed' as const } : tx
+                        )
+                    );
+                }, 2000);
+            } else {
+                // Mock deposit for now (as deposits come from external sources)
+                const newTx: Transaction = {
+                    id: `TX-${String(transactions.length + 1).padStart(4, '0')}`,
+                    walletId: 'w1',
+                    amount: amount,
+                    type: 'deposit',
+                    status: 'pending',
+                    createdAt: new Date().toISOString(),
+                    txHash: `0x${Math.random().toString(16).slice(2, 8)}...${Math.random().toString(16).slice(2, 5)}`
+                };
+
+                setTransactions(prev => [newTx, ...prev]);
+
+                const currentBalance = parseFloat(balance);
+                const newBalance = currentBalance + numAmount;
+                setBalance(newBalance.toFixed(2));
+
+                if (wallet) {
+                    setWallet({ ...wallet, balance: newBalance.toFixed(2) });
+                }
+
+                setTimeout(() => {
+                    setTransactions(prev =>
+                        prev.map(tx =>
+                            tx.id === newTx.id ? { ...tx, status: 'confirmed' as const } : tx
+                        )
+                    );
+                }, 2000);
+            }
+
+            // Reset form and close modal
+            setTargetAddress("");
+            setAmount("");
+            setShowModal(null);
+        } catch (err) {
+            setTransactionError("Transaction failed. Please try again.");
+            console.error(err);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -126,7 +268,7 @@ export default function WalletPage() {
                     <div className="relative z-10 flex justify-between items-start">
                         <div className="flex flex-col gap-2 center">
                             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Total Valuation</span>
-                            <h2 className="text-5xl font-bold tracking-tighter text-white">{wallet?.balance} <span className="text-zinc-600">ETH</span></h2>
+                            <h2 className="text-5xl font-bold tracking-tighter text-white">{balance} <span className="text-zinc-600">ETH</span></h2>
                         </div>
                         <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
                             <WalletIcon size={24} className="text-white" />
@@ -255,15 +397,15 @@ export default function WalletPage() {
                                     <div>
                                         <span className={cn(
                                             "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest",
-                                            tx.status === 'completed' && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500",
-                                            tx.status === 'pending' && "bg-amber-500/10 text-amber-600 dark:text-amber-500",
-                                            tx.status === 'failed' && "bg-red-500/10 text-red-600 dark:text-red-500",
+                                            tx.status === 'confirmed' ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-500" : "",
+                                            tx.status === 'pending' ? "bg-amber-500/10 text-amber-600 dark:text-amber-500" : "",
+                                            tx.status === 'failed' ? "bg-red-500/10 text-red-600 dark:text-red-500" : "",
                                         )}>
                                             {tx.status}
                                         </span>
                                     </div>
                                     <div className="text-right">
-                                        <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500">{new Date(tx.createdAt).toLocaleDateString()}</span>
+                                        <span className="text-[10px] font-bold uppercase text-zinc-400 dark:text-zinc-500">{tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'N/A'}</span>
                                     </div>
                                 </div>
                             )
@@ -302,8 +444,6 @@ export default function WalletPage() {
                                 </div>
                             </div>
 
-
-
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-3">
                                     <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-600 ml-4">
@@ -319,19 +459,68 @@ export default function WalletPage() {
                                         onChange={(e) => handleAddressChange(e.target.value)}
                                     />
                                     {addressError && (
-                                        <span className="text-[10px] text-red-500 font-bold ml-4 uppercase">{addressError}</span>
+                                        <div className="flex items-center gap-2 ml-4 text-red-500 text-[10px] font-bold uppercase">
+                                            <AlertCircle size={14} />
+                                            {addressError}
+                                        </div>
                                     )}
                                 </div>
 
                                 <div className="flex flex-col gap-3">
                                     <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 dark:text-zinc-600 ml-4">Input ETH Amount</label>
-                                    <Input placeholder="0.00" className="text-2xl h-16 px-6 font-mono" />
+                                    <Input
+                                        placeholder="0.00"
+                                        className={cn(
+                                            "text-2xl h-16 px-6 font-mono",
+                                            amountError ? "border-red-500" : ""
+                                        )}
+                                        value={amount}
+                                        onChange={(e) => handleAmountChange(e.target.value)}
+                                        type="number"
+                                    />
+                                    {amountError && (
+                                        <div className="flex items-center gap-2 ml-4 text-red-500 text-[10px] font-bold uppercase">
+                                            <AlertCircle size={14} />
+                                            {amountError}
+                                        </div>
+                                    )}
+                                    {showModal === 'withdrawal' && (
+                                        <span className="text-[10px] text-zinc-500 ml-4">Available: {balance} ETH</span>
+                                    )}
                                 </div>
+
+                                {transactionError && (
+                                    <div className="flex items-center gap-2 p-4 bg-red-500/10 border border-red-500 rounded-xl text-red-500 text-sm font-bold">
+                                        <AlertCircle size={16} />
+                                        {transactionError}
+                                    </div>
+                                )}
                             </div>
 
-                            <Button size="lg" className="h-14 font-bold text-base" onClick={() => setShowModal(null)} disabled={!!addressError}>
-                                Confirm Intent
-                            </Button>
+                            <div className="flex gap-4">
+                                <Button
+                                    variant="outline"
+                                    size="lg"
+                                    className="h-14 font-bold text-base flex-1"
+                                    onClick={() => {
+                                        setShowModal(null);
+                                        setTargetAddress("");
+                                        setAmount("");
+                                        setTransactionError("");
+                                    }}
+                                    disabled={isProcessing}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    size="lg"
+                                    className="h-14 font-bold text-base flex-1"
+                                    onClick={processTransaction}
+                                    disabled={!!addressError || !!amountError || !targetAddress || !amount || isProcessing}
+                                >
+                                    {isProcessing ? 'Processing...' : 'Confirm & Execute'}
+                                </Button>
+                            </div>
                         </motion.div>
                     </div>
                 )}

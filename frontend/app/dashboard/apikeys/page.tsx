@@ -2,63 +2,145 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Plus, Copy, Check, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Copy, Check, Trash2, AlertCircle, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { Button, Input } from "@/lib/components/ui";
 import { ApiKey } from "@/lib/types";
 import { fetchJSON } from "@/lib/fetcher";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, apiKeyAPI } from "@/lib/api";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function ApiKeysPage() {
+    const { token } = useAuth();
     const [keys, setKeys] = useState<ApiKey[]>([]);
+    const [loading, setLoading] = useState(true);
     const [newKeyData, setNewKeyData] = useState<{ publicKey: string; secret: string; name: string } | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [name, setName] = useState("");
     const [copied, setCopied] = useState<string | null>(null);
+    const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
+    const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
 
+    // Load API keys from backend
     useEffect(() => {
-        fetchKeys();
-    }, []);
-
-    const fetchKeys = async () => {
-        try {
-            const res = await apiFetch('/api/v1/apikeys');
-            const data = await res.json();
-            setKeys(data || []);
-        } catch (e) {
-            console.error(e);
-            setKeys([]);
+        if (token) {
+            loadKeys();
         }
+    }, [token]);
+
+    const loadKeys = async () => {
+        setLoading(true);
+        try {
+            const res = await apiKeyAPI.list(token!);
+            if (Array.isArray(res)) {
+                const formattedKeys = res.map((key: any) => ({
+                    id: key.id,
+                    name: key.name,
+                    publicKey: key.public_key,
+                    isHidden: true,
+                    createdAt: key.created_at,
+                    lastUsed: null
+                }));
+                setKeys(formattedKeys);
+                // Hide all secret keys initially
+                setHiddenKeys(new Set(formattedKeys.map((k: ApiKey) => k.id)));
+            }
+        } catch (err) {
+            console.error("Failed to load API keys:", err);
+        }
+        setLoading(false);
+    };
+
+    // Generate a random key
+    const generateKey = (): string => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let result = '';
+        for (let i = 0; i < 32; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
     };
 
     const handleCreate = async () => {
+        if (!name.trim() || !token) {
+            return;
+        }
+
         try {
-            const res = await apiFetch('/api/v1/apikeys', {
-                method: 'POST',
-                body: JSON.stringify({ name }),
-            });
+            const res = await apiKeyAPI.create(token, { name });
 
-            const data = await res.json();
+            const newKey: ApiKey = {
+                id: res.id,
+                name: res.name,
+                publicKey: res.public_key,
+                isHidden: true,
+                createdAt: res.created_at,
+                lastUsed: null
+            };
 
+            // Show the new key modal with secret
             setNewKeyData({
-                publicKey: data.public_key,
-                secret: data.secret_key,
-                name: data.name
+                publicKey: res.public_key,
+                secret: res.secret_key,
+                name: res.name
             });
+
+            // Add to keys list
+            setKeys(prev => [newKey, ...prev]);
+            setHiddenKeys(prev => new Set([...prev, newKey.id]));
 
             setName("");
-            fetchKeys();
-        } catch (e) {
-            console.error(e);
+            setShowCreateModal(false);
+        } catch (err) {
+            console.error("Failed to create API key:", err);
         }
     };
 
-    const handleDelete = async (id: string) => {
-        try {
-            await apiFetch(`/api/v1/apikeys/${id}`, { method: 'DELETE' });
-            fetchKeys();
-        } catch (e) {
-            console.error(e);
-        }
+    const handleDelete = (id: string) => {
+        if (!token) return;
+
+        apiKeyAPI.delete(token, id).then(() => {
+            setKeys(prev => prev.filter(k => k.id !== id));
+            setHiddenKeys(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(id);
+                return newSet;
+            });
+        }).catch(err => {
+            console.error("Failed to delete API key:", err);
+        });
+    };
+
+    const handleRegenerate = (id: string) => {
+        if (!token) return;
+
+        setRegeneratingId(id);
+        apiKeyAPI.regenerate(token, id).then((res) => {
+            // Show regenerate modal with new secret
+            const key = keys.find(k => k.id === id);
+            if (key) {
+                setNewKeyData({
+                    publicKey: key.publicKey,
+                    secret: res.secret_key,
+                    name: key.name
+                });
+            }
+            setRegeneratingId(null);
+        }).catch(err => {
+            console.error("Failed to regenerate API key:", err);
+            setRegeneratingId(null);
+        });
+    };
+
+    const toggleVisibility = (id: string) => {
+        setHiddenKeys(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(id)) {
+                newSet.delete(id);
+            } else {
+                newSet.add(id);
+            }
+            return newSet;
+        });
     };
 
     const copyToClipboard = (text: string, type: string) => {
@@ -153,10 +235,29 @@ export default function ApiKeysPage() {
                                     </span>
                                 </div>
                                 <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(key.publicKey, 'list')}>
-                                        {copied === 'list' ? <Check size={14} /> : <Copy size={14} />}
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => toggleVisibility(key.id)}
+                                        className="text-zinc-400 hover:text-black dark:hover:text-white"
+                                    >
+                                        {hiddenKeys.has(key.id) ? <EyeOff size={14} /> : <Eye size={14} />}
                                     </Button>
-                                    <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-red-500" onClick={() => handleDelete(key.id)}>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => handleRegenerate(key.id)}
+                                        disabled={regeneratingId === key.id}
+                                        className="text-zinc-400 hover:text-amber-500"
+                                    >
+                                        <RefreshCw size={14} />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-zinc-400 hover:text-red-500"
+                                        onClick={() => handleDelete(key.id)}
+                                    >
                                         <Trash2 size={14} />
                                     </Button>
                                 </div>
