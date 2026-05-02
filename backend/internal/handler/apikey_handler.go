@@ -87,3 +87,25 @@ func (h *ApiKeyHandler) Delete(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *ApiKeyHandler) Regenerate(w http.ResponseWriter, r *http.Request) {
+	keyIDStr := chi.URLParam(r, "id")
+	keyID, err := uuid.Parse(keyIDStr)
+	if err != nil {
+		http.Error(w, "Invalid API Key ID", http.StatusBadRequest)
+		return
+	}
+
+	userIDStr := r.Context().Value("user_id").(string)
+	userID, _ := uuid.Parse(userIDStr)
+
+	resp, err := h.service.RegenerateKey(r.Context(), keyID, userID)
+	if err != nil {
+		http.Error(w, "Failed to regenerate key: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
+}
