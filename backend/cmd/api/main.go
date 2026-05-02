@@ -69,7 +69,7 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// ✅ CORS Configuration
+	//  CORS Configuration
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{
 			"http://localhost:3001",
@@ -107,19 +107,24 @@ func main() {
 		})
 	})
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Use(middleware.AuthMiddleware(cfg.JWTSecret))
+		r.Group(func(r chi.Router) {
+			r.Use(middleware.AuthMiddleware(cfg.JWTSecret))
 
-		r.Route("/wallet", func(r chi.Router) {
-			r.Post("/create", walletHandler.Create)
-			r.Get("/balance", walletHandler.GetBalance)
-			r.Get("/transactions", walletHandler.GetTransactions)
-			r.Post("/withdraw", walletHandler.Withdraw)
-		})
+			// Wallet routes with auth
+			r.Route("/wallet", func(r chi.Router) {
+				r.Post("/create", walletHandler.Create)
+				r.Get("/balance", walletHandler.GetBalance)
+				r.Get("/transactions", walletHandler.GetTransactions)
+				r.Post("/withdraw", walletHandler.Withdraw)
+			})
 
-		r.Route("/apikeys", func(r chi.Router) {
-			r.Post("/", apiKeyHandler.Create)
-			r.Get("/", apiKeyHandler.List)
-			r.Delete("/{id}", apiKeyHandler.Delete)
+			// API key routes with auth
+			r.Route("/apikeys", func(r chi.Router) {
+				r.Post("/", apiKeyHandler.Create)
+				r.Get("/", apiKeyHandler.List)
+				r.Delete("/{id}", apiKeyHandler.Delete)
+				r.Post("/{id}/regenerate", apiKeyHandler.Regenerate)
+			})
 		})
 	})
 
