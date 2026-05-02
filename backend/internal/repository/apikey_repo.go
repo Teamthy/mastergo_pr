@@ -61,3 +61,9 @@ func (r *ApiKeyRepository) Revoke(ctx context.Context, id uuid.UUID, userID uuid
 	_, err := r.db.Exec(ctx, query, id, userID)
 	return err
 }
+
+func (r *ApiKeyRepository) UpdateSecret(ctx context.Context, id uuid.UUID, userID uuid.UUID, newHashedSecret string) error {
+	query := `UPDATE api_keys SET hashed_secret = $1 WHERE id = $2 AND user_id = $3 AND revoked_at IS NULL`
+	_, err := r.db.Exec(ctx, query, newHashedSecret, id, userID)
+	return err
+}
