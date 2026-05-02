@@ -35,13 +35,13 @@ const apiRequest = async (
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-console.log("API CALL →", url);
+  console.log("API CALL →", url);
 
-const res = await fetch(url, {
-  method,
-  headers,
-  body: method !== "GET" && body ? JSON.stringify(body) : undefined,
-});
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: method !== "GET" && body ? JSON.stringify(body) : undefined,
+  });
   return handleResponse(res);
 };
 
@@ -143,7 +143,7 @@ export const apiFetch = async (
 ): Promise<Response> => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   const headers: Record<string, string> = {};
-  
+
   // Copy existing headers if they're a plain object
   if (options?.headers && typeof options.headers === 'object' && !Array.isArray(options.headers)) {
     Object.entries(options.headers as Record<string, string>).forEach(([key, value]) => {
@@ -156,7 +156,7 @@ export const apiFetch = async (
   }
 
   const fullUrl = url.startsWith('http') ? url : `${API}${url}`;
-  
+
   const res = await fetch(fullUrl, {
     ...options,
     headers,
@@ -167,4 +167,42 @@ export const apiFetch = async (
   }
 
   return res;
+};
+
+// Wallet API methods
+export const walletAPI = {
+  createWallet: async (token: string) => {
+    return apiRequest("POST", `${API}/api/v1/wallet/create`, {}, token);
+  },
+
+  getBalance: async (token: string) => {
+    return apiRequest("GET", `${API}/api/v1/wallet/balance`, undefined, token);
+  },
+
+  getTransactions: async (token: string) => {
+    return apiRequest("GET", `${API}/api/v1/wallet/transactions`, undefined, token);
+  },
+
+  withdraw: async (token: string, data: { amount_wei: string; to: string }) => {
+    return apiRequest("POST", `${API}/api/v1/wallet/withdraw`, data, token);
+  },
+};
+
+// API Key API methods
+export const apiKeyAPI = {
+  create: async (token: string, data: { name: string }) => {
+    return apiRequest("POST", `${API}/api/v1/apikeys`, data, token);
+  },
+
+  list: async (token: string) => {
+    return apiRequest("GET", `${API}/api/v1/apikeys`, undefined, token);
+  },
+
+  delete: async (token: string, id: string) => {
+    return apiRequest("DELETE", `${API}/api/v1/apikeys/${id}`, {}, token);
+  },
+
+  regenerate: async (token: string, id: string) => {
+    return apiRequest("POST", `${API}/api/v1/apikeys/${id}/regenerate`, {}, token);
+  },
 };
