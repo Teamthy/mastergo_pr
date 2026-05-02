@@ -27,3 +27,11 @@ type ApiKeyCreateResponse struct {
 	SecretKey string    `json:"secret_key"`
 	CreatedAt time.Time `json:"created_at"`
 }
+
+type ApiKeyRegenerateResponse struct {
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	PublicKey string    `json:"public_key"`
+	SecretKey string    `json:"secret_key"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
