@@ -161,11 +161,6 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// In a production system, you might:
-	// 1. Add token to blacklist in Redis
-	// 2. Invalidate refresh tokens
-	// 3. Update user session status
-
 	respondJSON(w, http.StatusOK, models.SuccessResponse{
 		Message: "Successfully logged out",
 	})
