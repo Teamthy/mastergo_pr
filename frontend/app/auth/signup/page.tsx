@@ -5,6 +5,7 @@ import { onboardingMachine } from "@/lib/onboardingMachine";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
+import { authAPI } from "@/lib/api";
 import { PasswordStrengthMeter } from "@/components/PasswordStrengthMeter";
 import NameStep from "./steps/NameStep";
 import CredentialsStep from "./steps/CredentialsStep";
@@ -52,11 +53,14 @@ export default function SignupFlow() {
         setLoading(true);
 
         try {
-            await signup(state.context.firstName, state.context.lastName, email, password, confirmPassword);
+            // Normalize email (trim and lowercase)
+            const normalizedEmail = email.toLowerCase().trim();
+
+            await signup(state.context.firstName, state.context.lastName, normalizedEmail, password, confirmPassword);
             send({
                 type: "SUBMIT_CREDENTIALS",
-                email,
-                password,
+                email: normalizedEmail,
+                password: password.trim(),
                 confirmPassword,
             });
             setOtpCountdown(60);
@@ -91,15 +95,11 @@ export default function SignupFlow() {
         setLoading(true);
 
         try {
-            const res = await fetch("http://127.0.0.1:8080/auth/resend-otp", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: state.context.email }),
-            });
-            if (!res.ok) throw new Error("Failed to resend OTP");
+            await authAPI.resendOTP(state.context.email);
             setOtpCountdown(60);
         } catch (err: any) {
-            setError(err.message || "Failed to resend OTP");
+            const errorMsg = err.response?.data?.message || err.message || "Failed to resend OTP";
+            setError(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -110,8 +110,23 @@ export default function SignupFlow() {
         setLoading(true);
 
         try {
+            // Wait a moment for email verification to be processed
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             // Login first to get JWT token
-            await login(state.context.email, state.context.password);
+            try {
+                await login(state.context.email, state.context.password);
+            } catch (loginErr: any) {
+                const loginErrorMsg = loginErr.response?.data?.message || loginErr.message;
+                // If login fails, provide helpful error
+                if (loginErrorMsg && loginErrorMsg.includes("verify")) {
+                    throw new Error("Please verify your email first. Go back and check your OTP.");
+                } else if (loginErrorMsg && loginErrorMsg.includes("credentials")) {
+                    throw new Error("Email or password is incorrect. Please go back and re-enter your credentials.");
+                }
+                throw loginErr;
+            }
+
             // Then update profile with authenticated session
             await updateProfile(phone, address);
             send({
@@ -119,11 +134,10 @@ export default function SignupFlow() {
                 phone,
                 address,
             });
-            setTimeout(() => router.push("/dashboard"), 1000);
+            // Redirect will be handled by CompletedStep component
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || "Profile update failed";
             setError(errorMsg);
-        } finally {
             setLoading(false);
         }
     };
@@ -186,7 +200,7 @@ export default function SignupFlow() {
 
             {/* Completed */}
             {state.value === "completed" && (
-                <CompletedStep onDone={() => router.push("/dashboard")} />
+                <CompletedStep onDone={() => router.push("/dashboard/wallet")} />
             )}
         </div>
     );
