@@ -58,6 +58,42 @@ func (s *ApiKeyService) RevokeKey(ctx context.Context, id uuid.UUID, userID uuid
 	return s.repo.Revoke(ctx, id, userID)
 }
 
+func (s *ApiKeyService) RegenerateKey(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*models.ApiKeyRegenerateResponse, error) {
+	rawSecret := fmt.Sprintf("sk_live_%s", generateSecureRandom(32))
+	hash := sha256.Sum256([]byte(rawSecret))
+	hashedSecret := hex.EncodeToString(hash[:])
+
+	if err := s.repo.UpdateSecret(ctx, id, userID, hashedSecret); err != nil {
+		return nil, err
+	}
+
+	// Fetch updated key to get name and public key
+	keys, err := s.repo.ListByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var key *models.ApiKey
+	for _, k := range keys {
+		if k.ID == id {
+			key = &k
+			break
+		}
+	}
+
+	if key == nil {
+		return nil, fmt.Errorf("API key not found")
+	}
+
+	return &models.ApiKeyRegenerateResponse{
+		ID:        key.ID,
+		Name:      key.Name,
+		PublicKey: key.PublicKey,
+		SecretKey: rawSecret,
+		UpdatedAt: time.Now(),
+	}, nil
+}
+
 func generateSecureRandom(n int) string {
 	b := make([]byte, n)
 	rand.Read(b)
