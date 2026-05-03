@@ -14,3 +14,7 @@ func getUserID(r *http.Request) (uuid.UUID, error) {
 	}
 	return uuid.Parse(idStr)
 }
+
+func parseUUID(s string) (uuid.UUID, error) {
+	return uuid.Parse(s)
+}
