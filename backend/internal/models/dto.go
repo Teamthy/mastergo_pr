@@ -56,3 +56,89 @@ type ErrorResponse struct {
 	Message string      `json:"message"`
 	Details interface{} `json:"details,omitempty"`
 }
+
+// 2FA Setup Request
+type Setup2FARequest struct {
+	Password string `json:"password" validate:"required"`
+}
+
+// 2FA Setup Response
+type Setup2FAResponse struct {
+	Secret      string   `json:"secret"`
+	QRCode      string   `json:"qr_code"`
+	BackupCodes []string `json:"backup_codes"`
+}
+
+// 2FA Verify Request
+type Verify2FARequest struct {
+	Code string `json:"code" validate:"required,len=6,numeric"`
+}
+
+// 2FA Verify Backup Code Request
+type Verify2FABackupCodeRequest struct {
+	BackupCode string `json:"backup_code" validate:"required"`
+}
+
+// Login with 2FA Request
+type LoginWith2FARequest struct {
+	Code string `json:"code" validate:"required"`
+}
+
+// Password Reset Request
+type PasswordResetRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+// Password Reset Confirm Request
+type PasswordResetConfirmRequest struct {
+	Token           string `json:"token" validate:"required"`
+	NewPassword     string `json:"new_password" validate:"required,min=8"`
+	ConfirmPassword string `json:"confirm_password" validate:"required,eqfield=NewPassword"`
+}
+
+// Account Recovery Request
+type AccountRecoveryRequest struct {
+	Email            string `json:"email" validate:"required,email"`
+	RecoveryEmail    string `json:"recovery_email" validate:"required,email"`
+	SecurityQuestion string `json:"security_question"`
+	SecurityAnswer   string `json:"security_answer"`
+}
+
+// Webhook Request
+type CreateWebhookRequest struct {
+	URL    string   `json:"url" validate:"required,url"`
+	Events []string `json:"events" validate:"required,min=1"`
+}
+
+// Webhook Update Request
+type UpdateWebhookRequest struct {
+	URL    string   `json:"url" validate:"required,url"`
+	Events []string `json:"events" validate:"required,min=1"`
+	Active bool     `json:"active"`
+}
+
+// Transaction Filter Request
+type TransactionFilterRequest struct {
+	Type      string `json:"type"`   // "deposit" or "withdrawal"
+	Status    string `json:"status"` // "pending", "confirmed", "failed"
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
+	Limit     int    `json:"limit"`
+	Offset    int    `json:"offset"`
+}
+
+// Analytics Response
+type AnalyticsResponse struct {
+	TotalRequests   int64      `json:"total_requests"`
+	RequestsToday   int        `json:"requests_today"`
+	AvgResponseTime float64    `json:"avg_response_time"`
+	TopEndpoints    []Endpoint `json:"top_endpoints"`
+	ErrorRate       float64    `json:"error_rate"`
+}
+
+type Endpoint struct {
+	Path       string  `json:"path"`
+	Calls      int     `json:"calls"`
+	AvgTime    float64 `json:"avg_time"`
+	ErrorCount int     `json:"error_count"`
+}
