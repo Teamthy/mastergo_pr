@@ -8,12 +8,15 @@ import (
 )
 
 type Config struct {
-	Port      string
-	DBURL     string
-	REDIS_URL string
-	JWTSecret string
-	MasterKey string
-	EthRPCURL string
+	Port           string
+	DBURL          string
+	REDIS_URL      string
+	JWTSecret      string
+	MasterKey      string
+	EthRPCURL      string
+	SendGridAPIKey string
+	SendGridEmail  string
+	FrontendURL    string
 }
 
 func Load() *Config {
@@ -23,12 +26,15 @@ func Load() *Config {
 	}
 
 	cfg := &Config{
-		Port:      getEnv("PORT", "8080"),
-		DBURL:     getEnv("DATABASE_URL", ""),
-		REDIS_URL: getEnv("REDIS_URL", "localhost:6379"),
-		JWTSecret: getEnv("JWT_SECRET", ""),
-		MasterKey: getEnv("MASTER_KEY", ""),
-		EthRPCURL: getEnv("ETH_RPC_URL", "http://localhost:8545"),
+		Port:           getEnv("PORT", "8080"),
+		DBURL:          getEnv("DATABASE_URL", ""),
+		REDIS_URL:      getEnv("REDIS_URL", "localhost:6379"),
+		JWTSecret:      getEnv("JWT_SECRET", ""),
+		MasterKey:      getEnv("MASTER_KEY", ""),
+		EthRPCURL:      getEnv("ETH_RPC_URL", "http://localhost:8545"),
+		SendGridAPIKey: getEnv("SENDGRID_API_KEY", ""),
+		SendGridEmail:  getEnv("SENDGRID_FROM_EMAIL", "noreply@mastergo.app"),
+		FrontendURL:    getEnv("FRONTEND_URL", "http://localhost:3000"),
 	}
 
 	// Validate required environment variables for production
