@@ -27,7 +27,7 @@ export default function AuthPage() {
                 <div className="w-full max-w-md mx-auto text-center space-y-6">
                     <div>
                         <h1 className="text-4xl font-bold tracking-tighter mb-2">Welcome</h1>
-                        <p className="text-gray-600">Choose how you'd like to continue</p>
+
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -51,16 +51,14 @@ export default function AuthPage() {
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-gray-300"></div>
                         </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-white text-gray-500">or continue as guest</span>
-                        </div>
+
                     </div>
 
                     <Link href="/">
                         <button
                             className="w-full text-gray-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition"
                         >
-                            Browse Platform
+                            back to landing page
                         </button>
                     </Link>
                 </div>
