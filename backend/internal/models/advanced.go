@@ -6,17 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-// User2FA represents 2FA configuration
-type User2FA struct {
-	ID          uuid.UUID `json:"id"`
-	UserID      uuid.UUID `json:"user_id"`
-	TOTPSecret  string    `json:"-"` // Never expose
-	BackupCodes []string  `json:"-"` // Never expose
-	Enabled     bool      `json:"enabled"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
-
 // PasswordResetToken represents a password reset token
 type PasswordResetToken struct {
 	ID        uuid.UUID  `json:"id"`
