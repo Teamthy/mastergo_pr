@@ -28,15 +28,13 @@ export default function CompletedStep({ onDone }: CompletedStepProps) {
       <p className="text-gray-600 mb-2">
         Your account has been successfully created and verified.
       </p>
-      <p className="text-sm text-gray-500 mb-8">
-        You're all set to start using the platform.
-      </p>
+
 
       <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
         <p className="text-sm text-green-800">
           ✓ Email verified<br />
           ✓ Profile completed<br />
-          ✓ Ready to use
+
         </p>
       </div>
 
