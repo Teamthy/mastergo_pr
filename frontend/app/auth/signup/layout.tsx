@@ -12,7 +12,7 @@ export default function SignupLayout({ children }: { children: React.ReactNode }
   const steps = ['name', 'credentials', 'otp', 'profile'];
   const stepIndex = steps.indexOf(currentStep as string);
   const stepNumber = stepIndex >= 0 ? stepIndex + 1 : 0;
-  
+
   const progress = {
     name: 25,
     credentials: 50,
@@ -24,27 +24,13 @@ export default function SignupLayout({ children }: { children: React.ReactNode }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
-        {/* Progress Bar */}
-        <div className="max-w-md mx-auto mb-8">
-          <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
-              {currentStep === 'completed' ? 'Complete!' : `Step ${stepNumber} of 4`}
-            </span>
-            <span className="text-sm font-medium text-gray-600">{progress}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
+
 
         {/* Signup Form Card */}
         <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Create Account</h1>
           <p className="text-gray-600 mb-6">
-            {currentStep === 'name' && "What's your name?"}
+
             {currentStep === 'credentials' && 'Set up your password'}
             {currentStep === 'otp' && 'Verify your email'}
             {currentStep === 'profile' && 'Complete your profile'}
