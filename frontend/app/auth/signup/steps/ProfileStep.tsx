@@ -66,11 +66,10 @@ export default function ProfileStep({
             if (errors.phone) setErrors({ ...errors, phone: '' });
           }}
           placeholder="+1 (555) 123-4567"
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-            errors.phone
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-indigo-500'
-          }`}
+            }`}
         />
         {errors.phone && (
           <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
@@ -89,25 +88,17 @@ export default function ProfileStep({
           }}
           placeholder="123 Main Street, City, State 12345"
           rows={3}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-            errors.address
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.address
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-indigo-500'
-          }`}
+            }`}
         />
         {errors.address && (
           <p className="mt-1 text-sm text-red-600">{errors.address}</p>
         )}
       </div>
 
-      <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-        <p>This information will be used for:</p>
-        <ul className="list-disc list-inside mt-2 space-y-1">
-          <li>Communication and support</li>
-          <li>Verification purposes</li>
-          <li>Service delivery</li>
-        </ul>
-      </div>
+
 
       <div className="flex gap-3 pt-4">
         <button
