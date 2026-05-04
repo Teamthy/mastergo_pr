@@ -57,33 +57,6 @@ type ErrorResponse struct {
 	Details interface{} `json:"details,omitempty"`
 }
 
-// 2FA Setup Request
-type Setup2FARequest struct {
-	Password string `json:"password" validate:"required"`
-}
-
-// 2FA Setup Response
-type Setup2FAResponse struct {
-	Secret      string   `json:"secret"`
-	QRCode      string   `json:"qr_code"`
-	BackupCodes []string `json:"backup_codes"`
-}
-
-// 2FA Verify Request
-type Verify2FARequest struct {
-	Code string `json:"code" validate:"required,len=6,numeric"`
-}
-
-// 2FA Verify Backup Code Request
-type Verify2FABackupCodeRequest struct {
-	BackupCode string `json:"backup_code" validate:"required"`
-}
-
-// Login with 2FA Request
-type LoginWith2FARequest struct {
-	Code string `json:"code" validate:"required"`
-}
-
 // Password Reset Request
 type PasswordResetRequest struct {
 	Email string `json:"email" validate:"required,email"`
