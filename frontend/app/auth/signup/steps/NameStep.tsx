@@ -46,7 +46,7 @@ export default function NameStep({ onSubmit, isLoading }: NameStepProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-black-700 mb-2">
           First Name
         </label>
         <input
@@ -57,11 +57,10 @@ export default function NameStep({ onSubmit, isLoading }: NameStepProps) {
             if (errors.firstName) setErrors({ ...errors, firstName: '' });
           }}
           placeholder="John"
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-            errors.firstName
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.firstName
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-indigo-500'
-          }`}
+            }`}
         />
         {errors.firstName && (
           <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
@@ -80,11 +79,10 @@ export default function NameStep({ onSubmit, isLoading }: NameStepProps) {
             if (errors.lastName) setErrors({ ...errors, lastName: '' });
           }}
           placeholder="Doe"
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-            errors.lastName
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.lastName
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-indigo-500'
-          }`}
+            }`}
         />
         {errors.lastName && (
           <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
