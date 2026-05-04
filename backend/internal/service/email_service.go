@@ -85,35 +85,6 @@ func (s *EmailService) SendPasswordResetEmail(toEmail, resetLink string) error {
 	return err
 }
 
-// Send2FADisabledEmail notifies user that 2FA was disabled
-func (s *EmailService) Send2FADisabledEmail(toEmail string) error {
-	if s.apiKey == "" {
-		log.Printf("2FA Disabled Notification to %s\n", toEmail)
-		return nil
-	}
-
-	from := mail.NewEmail("MasterGo", s.fromEmail)
-	to := mail.NewEmail("", toEmail)
-
-	subject := "Two-Factor Authentication Disabled - MasterGo"
-	plainTextContent := "Two-factor authentication has been disabled on your account."
-	htmlContent := `
-		<html>
-			<body>
-				<h2>Security Alert</h2>
-				<p>Two-factor authentication has been disabled on your account.</p>
-				<p>If you didn't do this, please secure your account immediately.</p>
-			</body>
-		</html>
-	`
-
-	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
-	client := sendgrid.NewSendClient(s.apiKey)
-
-	_, err := client.Send(message)
-	return err
-}
-
 // SendAccountRecoveryEmail sends account recovery options
 func (s *EmailService) SendAccountRecoveryEmail(toEmail, recoveryCode string) error {
 	if s.apiKey == "" {
