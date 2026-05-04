@@ -11,7 +11,6 @@ require (
 	github.com/jackc/pgx/v5 v5.9.2
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
-	github.com/pquerna/otp v1.4.0
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/sendgrid/sendgrid-go v3.14.0+incompatible
 	golang.org/x/crypto v0.50.0
@@ -19,7 +18,6 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/deckarep/golang-set/v2 v2.6.0 // indirect
