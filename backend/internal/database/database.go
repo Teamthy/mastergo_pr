@@ -82,27 +82,6 @@ func (db *Database) UpdateUserPassword(ctx context.Context, userID uuid.UUID, ne
 	return db.AdvancedRepository.UpdateUserPassword(ctx, userID, newPassword)
 }
 
-// Advanced Repository delegation methods - 2FA
-func (db *Database) Get2FA(ctx context.Context, userID uuid.UUID) (*models.User2FA, error) {
-	return db.AdvancedRepository.Get2FA(ctx, userID)
-}
-
-func (db *Database) User2FAExists(ctx context.Context, userID uuid.UUID) (bool, error) {
-	return db.AdvancedRepository.User2FAExists(ctx, userID)
-}
-
-func (db *Database) Create2FA(ctx context.Context, twoFA *models.User2FA) error {
-	return db.AdvancedRepository.Create2FA(ctx, twoFA)
-}
-
-func (db *Database) Disable2FA(ctx context.Context, userID uuid.UUID) error {
-	return db.AdvancedRepository.Disable2FA(ctx, userID)
-}
-
-func (db *Database) Update2FA(ctx context.Context, userID uuid.UUID, secret string, backupCodes []string, enabled bool) error {
-	return db.AdvancedRepository.Update2FA(ctx, userID, secret, backupCodes, enabled)
-}
-
 // Advanced Repository delegation methods - Audit Logs
 func (db *Database) CreateAuditLog(ctx context.Context, auditLog *models.AuditLog) error {
 	return db.AdvancedRepository.CreateAuditLog(ctx, auditLog)
