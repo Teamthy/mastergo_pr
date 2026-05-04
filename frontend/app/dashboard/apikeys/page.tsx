@@ -19,6 +19,8 @@ export default function ApiKeysPage() {
     const [copied, setCopied] = useState<string | null>(null);
     const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
     const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [creatingKey, setCreatingKey] = useState(false);
 
     // Load API keys from backend
     useEffect(() => {
@@ -29,8 +31,10 @@ export default function ApiKeysPage() {
 
     const loadKeys = async () => {
         setLoading(true);
+        setError(null);
         try {
             const res = await apiKeyAPI.list(token!);
+            console.log("API Keys Response:", res);
             if (Array.isArray(res)) {
                 const formattedKeys = res.map((key: any) => ({
                     id: key.id,
@@ -44,8 +48,9 @@ export default function ApiKeysPage() {
                 // Hide all secret keys initially
                 setHiddenKeys(new Set(formattedKeys.map((k: ApiKey) => k.id)));
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to load API keys:", err);
+            setError(`Failed to load API keys: ${err?.response?.data?.message || err?.message || 'Unknown error'}`);
         }
         setLoading(false);
     };
@@ -62,11 +67,16 @@ export default function ApiKeysPage() {
 
     const handleCreate = async () => {
         if (!name.trim() || !token) {
+            setError("Please enter a key name");
             return;
         }
 
+        setCreatingKey(true);
+        setError(null);
         try {
+            console.log("Creating API key with name:", name);
             const res = await apiKeyAPI.create(token, { name });
+            console.log("API Key Creation Response:", res);
 
             const newKey: ApiKey = {
                 id: res.id,
@@ -90,8 +100,11 @@ export default function ApiKeysPage() {
 
             setName("");
             setShowCreateModal(false);
-        } catch (err) {
+        } catch (err: any) {
             console.error("Failed to create API key:", err);
+            setError(`Failed to create API key: ${err?.response?.data?.message || err?.message || 'Unknown error'}`);
+        } finally {
+            setCreatingKey(false);
         }
     };
 
@@ -160,6 +173,21 @@ export default function ApiKeysPage() {
                     <Plus size={18} className="mr-2" /> Generate Key
                 </Button>
             </header>
+
+            {/* Error Alert */}
+            <AnimatePresence>
+                {error && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 flex items-center gap-3 text-red-500"
+                    >
+                        <AlertCircle size={20} />
+                        <span className="text-sm font-medium">{error}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Secrets Warning (Conditional) */}
             <AnimatePresence>
@@ -298,8 +326,10 @@ export default function ApiKeysPage() {
                                 />
                             </div>
                             <div className="flex gap-4">
-                                <Button variant="outline" className="flex-1" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-                                <Button className="flex-1" onClick={() => { handleCreate(); setShowCreateModal(false); }}>Generate</Button>
+                                <Button variant="outline" className="flex-1" onClick={() => setShowCreateModal(false)} disabled={creatingKey}>Cancel</Button>
+                                <Button className="flex-1" onClick={handleCreate} disabled={creatingKey || !name.trim()}>
+                                    {creatingKey ? "Creating..." : "Generate"}
+                                </Button>
                             </div>
                         </motion.div>
                     </div>
