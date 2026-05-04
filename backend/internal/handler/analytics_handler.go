@@ -17,8 +17,7 @@ func NewAnalyticsHandler(analyticsService *service.AnalyticsService) *AnalyticsH
 
 // GetAPIAnalytics retrieves API analytics for an API key
 func (h *AnalyticsHandler) GetAPIAnalytics(w http.ResponseWriter, r *http.Request) {
-	_, err := getUserID(r)
-	if err != nil {
+	if _, err := getUserID(r); err != nil {
 		respondError(w, http.StatusUnauthorized, "Unauthorized", "User ID not found in token")
 		return
 	}
@@ -80,8 +79,7 @@ func (h *AnalyticsHandler) GetUserAnalytics(w http.ResponseWriter, r *http.Reque
 
 // ExportAnalytics exports analytics as CSV
 func (h *AnalyticsHandler) ExportAnalytics(w http.ResponseWriter, r *http.Request) {
-	_, err := getUserID(r)
-	if err != nil {
+	if _, err := getUserID(r); err != nil {
 		respondError(w, http.StatusUnauthorized, "Unauthorized", "User ID not found in token")
 		return
 	}
