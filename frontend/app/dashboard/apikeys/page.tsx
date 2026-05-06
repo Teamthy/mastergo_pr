@@ -42,6 +42,7 @@ export default function ApiKeysPage() {
                     id: key.id,
                     name: key.name,
                     publicKey: key.public_key,
+                    userId: key.userId,
                     isHidden: true,
                     createdAt: key.created_at,
                     lastUsed: null

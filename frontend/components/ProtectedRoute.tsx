@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, ReactNode } from "react";
+import { useEffect, ReactNode, useState } from "react";
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -15,12 +15,21 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
     const { user, loading } = useAuth();
     const router = useRouter();
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
     useEffect(() => {
         if (loading) return;
 
         if (!user) {
-            router.replace("/auth");
+            setIsRedirecting(true);
+            router.replace("/");
+            return;
+        }
+
+        // Check if user has completed onboarding
+        if (user.onboarding_status !== "COMPLETED") {
+            setIsRedirecting(true);
+            router.replace("/auth/signup");
             return;
         }
 
@@ -30,11 +39,19 @@ export default function ProtectedRoute({
         }
     }, [user, loading, router, requiredRoles]);
 
-    // Show nothing while loading to prevent flash of unprotected content
-    if (loading) return null;
+    // Show loading state while checking authentication
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-zinc-900 dark:border-white"></div>
+            </div>
+        );
+    }
 
-    // Redirect will happen in useEffect, but show nothing until redirected
-    if (!user) return null;
+    // Show nothing while redirecting
+    if (isRedirecting || !user) {
+        return null;
+    }
 
     return <>{children}</>;
 }

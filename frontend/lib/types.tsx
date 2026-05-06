@@ -41,10 +41,12 @@ export interface User {
 // API Key types
 export interface ApiKey {
     id: string;
-    userId: string;
+    userId?: string;
     name: string;
     publicKey: string;
+    isHidden?: boolean;
     createdAt: string;
+    lastUsed?: string | null;
     revokedAt?: string;
 }
 
