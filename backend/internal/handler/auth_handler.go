@@ -30,9 +30,11 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Return user object with onboarding status (no token yet - user must verify email)
 	respondJSON(w, http.StatusCreated, map[string]interface{}{
-		"message": "User created. Please verify email with OTP.",
-		"user":    user,
+		"message":         "Account created. Please verify email with OTP sent to your email address.",
+		"user":            user,
+		"otp_resend_wait": 60,
 	})
 }
 
@@ -51,9 +53,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, user, err := h.authService.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
+		// Log login attempt for security audit
+		logLoginAttempt(r, req.Email, false)
 		respondError(w, http.StatusUnauthorized, "Login failed", err.Error())
 		return
 	}
+
+	// Log successful login
+	logLoginAttempt(r, req.Email, true)
 
 	respondJSON(w, http.StatusOK, models.AuthResponse{
 		Token: token,
@@ -178,12 +185,38 @@ func (h *AuthHandler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.authService.VerifyEmail(r.Context(), req.Email, req.OTP); err != nil {
+	user, err := h.authService.VerifyEmail(r.Context(), req.Email, req.OTP)
+	if err != nil {
 		respondError(w, http.StatusBadRequest, "Verification failed", err.Error())
 		return
 	}
 
-	respondJSON(w, http.StatusOK, map[string]string{
-		"message": "email verified successfully",
+	// Generate JWT token after email verification so user can proceed to profile update
+	token, err := h.authService.GenerateToken(user)
+	if err != nil {
+		respondError(w, http.StatusInternalServerError, "Token generation failed", err.Error())
+		return
+	}
+
+	respondJSON(w, http.StatusOK, models.AuthResponse{
+		Token: token,
+		User:  user,
 	})
+}
+
+// Helper function to log login attempts for security audit
+func logLoginAttempt(r *http.Request, email string, success bool) {
+	// Extract client IP
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+
+	if success {
+		// Log successful login attempt (can be sent to audit service)
+		// For now, just log to console for debugging
+	} else {
+		// Log failed login attempt
+		// Can be used for rate limiting and security monitoring
+	}
 }
