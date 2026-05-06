@@ -220,27 +220,6 @@ All responses are JSON:
 
 
 
-## Environment Variables
-
-### Backend (.env)
-
-```
-PORT=8080
-DBURL=postgresql://user:password@localhost:5432/mastergo
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=your-secret-key
-MASTER_KEY=base64-encoded-32-byte-key
-ETH_RPC_URL=https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY
-SENDGRID_API_KEY=your-sendgrid-key
-```
-
-### Frontend (.env.local)
-
-```
-NEXT_PUBLIC_API_URL=https://mastergo-pr.onrender.com
-```
-
----
 
 ## Database Schema
 
@@ -253,7 +232,7 @@ The system uses PostgreSQL with the following main tables:
 - **webhook_events** — Outbound webhook events and delivery status
 - **audit_logs** — Complete audit trail of system events
 
----
+
 
 ## Deployment
 
@@ -314,24 +293,7 @@ Migrations are located in `backend/migrations/` and run automatically on applica
 
 ---
 
-## Troubleshooting
 
-### Backend won't start
-- Verify PostgreSQL and Redis are running
-- Check environment variables are properly set
-- Review logs for connection errors
-
-### CORS errors in frontend
-- Ensure `NEXT_PUBLIC_API_URL` is correctly set
-- Verify backend CORS configuration allows frontend origin
-- Check browser console for detailed error messages
-
-### Wallet operations failing
-- Verify Ethereum RPC URL is correct and accessible
-- Check master key is properly base64 encoded
-- Ensure wallet has sufficient gas for transactions
-
----
 
 ## Support & Contributing
 
@@ -355,4 +317,6 @@ This project is proprietary. All rights reserved.
 
 
 **Last Updated:** May 2026
+**Developed by:** Olusanya Timothy (teamthy)
+
 
