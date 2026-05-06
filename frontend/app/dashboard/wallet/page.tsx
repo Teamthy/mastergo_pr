@@ -57,15 +57,31 @@ export default function WalletPage() {
         }
 
         setLoading(true);
+        const timeoutMs = 15000; // 15 second timeout
+
         try {
-            // Fetch wallet balance from backend
-            const balanceRes = await walletAPI.getBalance(token);
+            // Helper function to add timeout to promises
+            const withTimeout = <T,>(promise: Promise<T>, ms: number): Promise<T> => {
+                return Promise.race([
+                    promise,
+                    new Promise<T>((_, reject) =>
+                        setTimeout(() => reject(new Error('Request timeout')), ms)
+                    )
+                ]);
+            };
+
+            // Fetch balance and transactions in parallel with timeout
+            const [balanceRes, txRes] = await Promise.all([
+                withTimeout(walletAPI.getBalance(token), timeoutMs),
+                withTimeout(walletAPI.getTransactions(token), timeoutMs)
+            ]);
+
             const balanceInEth = formatEther(balanceRes.balance_wei);
             setBalance(balanceInEth);
 
-            // Create or fetch wallet address
+            // Fetch or create wallet address
             try {
-                const walletRes = await walletAPI.createWallet(token);
+                const walletRes = await withTimeout(walletAPI.createWallet(token), timeoutMs);
                 setWallet({
                     id: 'w1',
                     userId: user?.id || 'u1',
@@ -75,6 +91,7 @@ export default function WalletPage() {
                 });
             } catch (err) {
                 // Wallet might already exist, set from balance response
+                console.warn("Failed to create wallet:", err);
                 setWallet({
                     id: 'w1',
                     userId: user?.id || 'u1',
@@ -84,8 +101,7 @@ export default function WalletPage() {
                 });
             }
 
-            // Fetch transaction history
-            const txRes = await walletAPI.getTransactions(token);
+            // Format and set transactions
             if (Array.isArray(txRes)) {
                 const formattedTxs = txRes.map((tx: any) => ({
                     id: tx.tx_hash || `TX-${Date.now()}`,
@@ -109,8 +125,9 @@ export default function WalletPage() {
                 createdAt: new Date().toISOString()
             });
             setBalance("1500.00");
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const copyAddress = () => {
@@ -267,7 +284,7 @@ export default function WalletPage() {
                 <div className="md:col-span-2 p-8 rounded-[2.5rem] bg-gradient-to-br from-zinc-900 to-black border border-zinc-800 flex flex-col justify-between min-h-[220px] relative overflow-hidden group">
                     <div className="relative z-10 flex justify-between items-start">
                         <div className="flex flex-col gap-2 center">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Total Valuation</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">Account balance</span>
                             <h2 className="text-5xl font-bold tracking-tighter text-white">{balance} <span className="text-zinc-600">ETH</span></h2>
                         </div>
                         <div className="p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md">
@@ -282,16 +299,7 @@ export default function WalletPage() {
                                 {copied ? <Check size={16} /> : <Copy size={16} />}
                             </button>
                         </div>
-                        <div className="flex gap-4">
-                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
-                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                Synchronized
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
-                                <Shield size={12} />
-                                AES-256
-                            </div>
-                        </div>
+
                     </div>
                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-all duration-700" />
                 </div>
@@ -440,7 +448,7 @@ export default function WalletPage() {
                                 </div>
                                 <div className="flex flex-col">
                                     <h2 className="text-3xl font-bold uppercase tracking-tighter text-black dark:text-white">{showModal} Assets</h2>
-                                    <p className="text-zinc-500 text-sm font-medium tracking-tight text-black dark:text-zinc-500">Access Vanguard's global liquidity network.</p>
+                                    <p className="text-zinc-500 text-sm font-medium tracking-tight text-black dark:text-zinc-500">Access our global liquidity network.</p>
                                 </div>
                             </div>
 
