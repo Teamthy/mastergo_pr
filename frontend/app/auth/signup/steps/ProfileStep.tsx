@@ -66,9 +66,9 @@ export default function ProfileStep({
             if (errors.phone) setErrors({ ...errors, phone: '' });
           }}
           placeholder="+1 (555) 123-4567"
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.phone
-              ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:ring-indigo-500'
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder-gray-500 bg-white ${errors.phone
+            ? 'border-red-500 focus:ring-red-500'
+            : 'border-gray-300 focus:ring-indigo-500'
             }`}
         />
         {errors.phone && (
@@ -88,17 +88,15 @@ export default function ProfileStep({
           }}
           placeholder="123 Main Street, City, State 12345"
           rows={3}
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.address
-              ? 'border-red-500 focus:ring-red-500'
-              : 'border-gray-300 focus:ring-indigo-500'
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder-gray-500 bg-white ${errors.address
+            ? 'border-red-500 focus:ring-red-500'
+            : 'border-gray-300 focus:ring-indigo-500'
             }`}
         />
         {errors.address && (
           <p className="mt-1 text-sm text-red-600">{errors.address}</p>
         )}
       </div>
-
-
 
       <div className="flex gap-3 pt-4">
         <button
