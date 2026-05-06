@@ -22,8 +22,8 @@ type User struct {
 	PasswordHash     string         `json:"-" db:"password_hash"`
 	FirstName        string         `json:"first_name" db:"first_name"`
 	LastName         string         `json:"last_name" db:"last_name"`
-	Phone            string         `json:"phone" db:"phone"`
-	Address          string         `json:"address" db:"address"`
+	Phone            *string        `json:"phone" db:"phone"`
+	Address          *string        `json:"address" db:"address"`
 	OnboardingStatus OnboardingStep `json:"onboarding_status" db:"onboarding_status"`
 	EmailVerified    bool           `json:"email_verified" db:"email_verified"`
 	LastLoginAt      *time.Time     `json:"last_login_at" db:"last_login_at"`
