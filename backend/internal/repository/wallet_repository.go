@@ -50,7 +50,15 @@ func (r *walletRepository) CreateWallet(
 	userID uuid.UUID,
 	address, encryptedKey string,
 ) error {
-	_, err := r.db.Exec(ctx, `
+	// Use transaction to atomically create wallet and balance
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	// Insert wallet
+	_, err = tx.Exec(ctx, `
 		INSERT INTO wallets (user_id, address, encrypted_private_key, created_at)
 		VALUES ($1, $2, $3, $4)
 		ON CONFLICT (user_id) DO NOTHING
@@ -60,7 +68,24 @@ func (r *walletRepository) CreateWallet(
 		encryptedKey,
 		time.Now(),
 	)
-	return err
+	if err != nil {
+		return err
+	}
+
+	// Insert balance record with default 0 balance
+	_, err = tx.Exec(ctx, `
+		INSERT INTO balances (user_id, balance, updated_at)
+		VALUES ($1, 0, $2)
+		ON CONFLICT (user_id) DO NOTHING
+	`,
+		userID,
+		time.Now(),
+	)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
 }
 
 func (r *walletRepository) GetWalletByUserID(
@@ -91,13 +116,14 @@ func (r *walletRepository) GetBalanceForUpdate(
 	var balance string
 
 	err := r.db.QueryRow(ctx, `
-		SELECT balance::text
+		SELECT COALESCE(balance::text, '0')
 		FROM balances
 		WHERE user_id = $1
 	`, userID).Scan(&balance)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return "", errors.New("balance not found")
+			// Return 0 balance if record doesn't exist instead of error
+			return "0", nil
 		}
 		return "", err
 	}
