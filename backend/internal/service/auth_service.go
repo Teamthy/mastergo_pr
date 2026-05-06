@@ -254,19 +254,19 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	return token, user, nil
 }
 
-func (s *AuthService) VerifyEmail(ctx context.Context, email, code string) error {
+func (s *AuthService) VerifyEmail(ctx context.Context, email, code string) (*models.User, error) {
 	email = normalizeEmail(email)
 	code = strings.TrimSpace(code)
 
 	if email == "" || code == "" {
-		return fmt.Errorf("email and otp are required")
+		return nil, fmt.Errorf("email and otp are required")
 	}
 
 	key := otpKey(email)
 
 	stored, err := s.rdb.Get(ctx, key).Result()
 	if err != nil {
-		return fmt.Errorf("otp expired or not found")
+		return nil, fmt.Errorf("otp expired or not found")
 	}
 
 	stored = strings.TrimSpace(stored)
@@ -280,21 +280,28 @@ func (s *AuthService) VerifyEmail(ctx context.Context, email, code string) error
 
 		if attempts >= 5 {
 			s.rdb.Del(ctx, key)
-			return fmt.Errorf("too many OTP attempts, please request a new one")
+			return nil, fmt.Errorf("too many OTP attempts, please request a new one")
 		}
 
-		return fmt.Errorf("invalid OTP")
+		return nil, fmt.Errorf("invalid OTP")
 	}
 
 	if err := s.repo.MarkUserVerified(ctx, email); err != nil {
-		return fmt.Errorf("failed to verify user: %w", err)
+		return nil, fmt.Errorf("failed to verify user: %w", err)
 	}
 
 	s.rdb.Del(ctx, key)
 	s.rdb.Del(ctx, "otp_attempts:"+email)
 
-	return nil
+	// Return the verified user object
+	user, err := s.repo.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	}
+
+	return user, nil
 }
+
 func (s *AuthService) GetProfile(ctx context.Context, userID uuid.UUID) (*models.User, error) {
 	return s.repo.GetByID(ctx, userID)
 }
@@ -328,12 +335,12 @@ func (s *AuthService) UpdateProfile(
 		return nil, fmt.Errorf("user not found")
 	}
 
-	user.Phone = phone
-	user.Address = address
-	user.OnboardingStatus = models.StepProfileCompleted
+	user.Phone = &phone
+	user.Address = &address
+	user.OnboardingStatus = models.StepCompleted // Mark onboarding as completed
 	user.UpdatedAt = time.Now()
 
-	if err := s.repo.UpdateProfile(ctx, userID, user.FirstName, user.LastName, phone, address, models.StepProfileCompleted); err != nil {
+	if err := s.repo.UpdateProfile(ctx, userID, user.FirstName, user.LastName, phone, address, models.StepCompleted); err != nil {
 		return nil, fmt.Errorf("failed to update profile: %w", err)
 	}
 
