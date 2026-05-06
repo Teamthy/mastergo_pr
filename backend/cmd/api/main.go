@@ -69,18 +69,21 @@ func main() {
 
 	r := chi.NewRouter()
 
-	//  CORS Configuration
+	// CORS Configuration - Allow frontend domain
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins: []string{
-			"http://localhost:3001",
 			"http://localhost:3000",
-			"http://127.0.0.1:3001",
-			"http://127.0.0.1:3000",
+			"https://mastergo-pr.onrender.com",
 			"https://mastergo-pr-1.onrender.com",
 		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Requested-With"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
+	}))
+
+	// Explicit OPTIONS handler for preflight requests
+	r.Method("OPTIONS", "/*", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
 	}))
 
 	r.Use(chimiddleware.RequestID)
