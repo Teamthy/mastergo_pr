@@ -32,12 +32,12 @@ func Load() *Config {
 		JWTSecret:      getEnv("JWT_SECRET", ""),
 		MasterKey:      getEnv("MASTER_KEY", ""),
 		EthRPCURL:      getEnv("ETH_RPC_URL", "http://localhost:8545"),
-		SendGridAPIKey: getEnv("SENDGRID_API_KEY", ""),
-		SendGridEmail:  getEnv("SENDGRID_FROM_EMAIL", "noreply@mastergo.app"),
+		
+		
 		FrontendURL:    getEnv("FRONTEND_URL", "http://localhost:3000"),
 	}
 
-	// Validate required environment variables for production
+	// i use this to Validate required environment variables for production
 	if cfg.DBURL == "" {
 		log.Fatal("DATABASE_URL environment variable is required")
 	}

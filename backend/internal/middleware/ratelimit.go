@@ -8,7 +8,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// RateLimitConfig defines rate limiting rules
+// RateLimitConfig to defines rate limiting rules
 type RateLimitConfig struct {
 	Requests int           // number of requests
 	Window   time.Duration // time window
