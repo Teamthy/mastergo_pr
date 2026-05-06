@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { LayoutDashboard, Wallet, Key, User, LogOut, Sun, Moon } from "lucide-react";
+import { Wallet, Key, User, LogOut, Sun, Moon } from "lucide-react";
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/ThemeContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -19,7 +19,6 @@ export function Navbar() {
     if (isAuthPage) return null;
 
     const navItems = [
-        { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
         { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
         { label: "API Keys", icon: Key, path: "/dashboard/apikeys" },
         { label: "Profile", icon: User, path: "/dashboard/profile" },
@@ -38,7 +37,7 @@ export function Navbar() {
                         <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center transform group-hover:rotate-12 transition-transform">
                             <div className="w-4 h-4 bg-white dark:bg-black rounded-sm" />
                         </div>
-                        <span className="font-bold tracking-tight text-xl text-black dark:text-white">VANGUARD</span>
+                        <span className="font-bold tracking-tight text-xl text-black dark:text-white">my app</span>
                     </Link>
 
                     <div className="hidden md:flex items-center gap-1">

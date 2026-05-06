@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { User, Mail, Phone, MapPin, Shield, Save, Check, ShieldAlert, LogOut, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, MapPin, Shield, Save, Check, LogOut, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { Button, Input } from "@/lib/components/ui";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
@@ -32,7 +32,7 @@ export default function ProfilePage() {
         email: user?.email || "user@example.com",
         phone: user?.phone || "",
         address: user?.address || "",
-        tier: "Pro Merchant",
+
         id: user?.id || "USER_UNKNOWN"
     });
 
@@ -43,7 +43,7 @@ export default function ProfilePage() {
                 email: user.email,
                 phone: user.phone || "",
                 address: user.address || "",
-                tier: "Pro Merchant",
+
                 id: user.id
             });
         }
@@ -115,8 +115,8 @@ export default function ProfilePage() {
     return (
         <div className="flex flex-col gap-10 max-w-4xl">
             <header className="flex flex-col gap-1">
-                <h1 className="text-4xl font-bold tracking-tighter uppercase text-black dark:text-white">Identity Console</h1>
-                <p className="text-zinc-500 font-medium tracking-tight">Manage your verified global profile and security credentials.</p>
+                <h1 className="text-4xl font-bold tracking-tighter uppercase text-black dark:text-white">PROFILE PAGE</h1>
+
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -141,9 +141,7 @@ export default function ProfilePage() {
                         </div>
                         <div className="flex flex-col">
                             <span className="font-bold text-lg uppercase tracking-tight text-black dark:text-white">{profile.name}</span>
-                            <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-600 dark:text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full mt-2 self-center">
-                                {profile.tier}
-                            </span>
+
                         </div>
                         <div className="w-full h-px bg-zinc-200 dark:bg-zinc-800 my-2" />
                         <div className="flex flex-col gap-1">
@@ -152,19 +150,7 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    <div className="p-6 rounded-3xl border border-zinc-200 dark:border-zinc-900 flex flex-col gap-4 bg-zinc-50 dark:bg-transparent">
-                        <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-500">Security Pulse</h3>
-                        <div className="flex flex-col gap-3">
-                            <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-900 pb-2">
-                                <span className="text-xs text-zinc-500 dark:text-zinc-400">2FA Status</span>
-                                <span className="text-[10px] font-bold text-emerald-500 uppercase">Active</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs text-zinc-500 dark:text-zinc-400">KYC Level</span>
-                                <span className="text-[10px] font-bold text-emerald-500 uppercase">Tier 3</span>
-                            </div>
-                        </div>
-                    </div>
+
 
                     {/* Logout Button */}
                     <Button
@@ -252,152 +238,142 @@ export default function ProfilePage() {
                             <Button variant="ghost" size="sm">Manage</Button>
                         </div>
 
-                        <div className="p-6 rounded-3xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/10 flex items-center justify-between group cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500">
-                                    <ShieldAlert size={20} />
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-sm uppercase text-black dark:text-white">Revoke Sessions</span>
-                                    <span className="text-[10px] text-zinc-500 dark:text-zinc-600 font-medium">Kill all active web and mobile logins</span>
-                                </div>
-                            </div>
-                            <Button variant="ghost" size="sm" className="text-orange-500">Revoke</Button>
-                        </div>
+
                     </div>
                 </div>
+
+                {/* Password Change Modal */}
+                <AnimatePresence>
+                    {showPasswordModal && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowPasswordModal(false)}
+                                className="absolute inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 flex flex-col gap-8 shadow-2xl"
+                            >
+                                <div className="flex flex-col gap-2">
+                                    <h2 className="text-2xl font-bold uppercase tracking-tight text-black dark:text-white flex items-center gap-3">
+                                        <Lock size={24} /> Change Password
+                                    </h2>
+                                    <p className="text-zinc-500 text-sm font-medium">Update your account security credentials.</p>
+                                </div>
+
+                                {passwordError && (
+                                    <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500 rounded-xl text-red-500 text-sm font-bold">
+                                        <AlertCircle size={16} />
+                                        {passwordError}
+                                    </div>
+                                )}
+
+                                <div className="flex flex-col gap-6">
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 ml-4">Current Password</label>
+                                        <div className="relative">
+                                            <Input
+                                                type={showPasswords.current ? "text" : "password"}
+                                                placeholder="••••••••"
+                                                value={passwordForm.current}
+                                                onChange={(e) => setPasswordForm({ ...passwordForm, current: e.target.value })}
+                                            />
+                                            <button
+                                                onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black dark:hover:text-white"
+                                            >
+                                                {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 ml-4">New Password</label>
+                                        <div className="relative">
+                                            <Input
+                                                type={showPasswords.new ? "text" : "password"}
+                                                placeholder="••••••••"
+                                                value={passwordForm.new}
+                                                onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })}
+                                            />
+                                            <button
+                                                onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black dark:hover:text-white"
+                                            >
+                                                {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 ml-4">Confirm Password</label>
+                                        <div className="relative">
+                                            <Input
+                                                type={showPasswords.confirm ? "text" : "password"}
+                                                placeholder="••••••••"
+                                                value={passwordForm.confirm}
+                                                onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
+                                            />
+                                            <button
+                                                onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black dark:hover:text-white"
+                                            >
+                                                {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <Button variant="outline" className="flex-1" onClick={() => { setShowPasswordModal(false); setPasswordError(''); }}>Cancel</Button>
+                                    <Button className="flex-1" onClick={handlePasswordSubmit} disabled={loading}>
+                                        {loading ? 'Updating...' : 'Update Password'}
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Logout Confirmation Modal */}
+                <AnimatePresence>
+                    {showLogoutConfirm && (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowLogoutConfirm(false)}
+                                className="absolute inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 flex flex-col gap-8 shadow-2xl"
+                            >
+                                <div className="flex flex-col gap-2">
+                                    <h2 className="text-2xl font-bold uppercase tracking-tight text-black dark:text-white">Confirm Logout</h2>
+                                    <p className="text-zinc-500 text-sm font-medium">You will be logged out from all active sessions.</p>
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <Button variant="outline" className="flex-1" onClick={() => setShowLogoutConfirm(false)} disabled={loading}>Cancel</Button>
+                                    <Button className="flex-1 bg-red-500 hover:bg-red-600" onClick={handleLogout} disabled={loading}>
+                                        {loading ? 'Logging out...' : 'Logout'}
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
-
-            {/* Password Change Modal */}
-            <AnimatePresence>
-                {showPasswordModal && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowPasswordModal(false)}
-                            className="absolute inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 flex flex-col gap-8 shadow-2xl"
-                        >
-                            <div className="flex flex-col gap-2">
-                                <h2 className="text-2xl font-bold uppercase tracking-tight text-black dark:text-white flex items-center gap-3">
-                                    <Lock size={24} /> Change Password
-                                </h2>
-                                <p className="text-zinc-500 text-sm font-medium">Update your account security credentials.</p>
-                            </div>
-
-                            {passwordError && (
-                                <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500 rounded-xl text-red-500 text-sm font-bold">
-                                    <AlertCircle size={16} />
-                                    {passwordError}
-                                </div>
-                            )}
-
-                            <div className="flex flex-col gap-6">
-                                <div className="flex flex-col gap-3">
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 ml-4">Current Password</label>
-                                    <div className="relative">
-                                        <Input
-                                            type={showPasswords.current ? "text" : "password"}
-                                            placeholder="••••••••"
-                                            value={passwordForm.current}
-                                            onChange={(e) => setPasswordForm({ ...passwordForm, current: e.target.value })}
-                                        />
-                                        <button
-                                            onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black dark:hover:text-white"
-                                        >
-                                            {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-3">
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 ml-4">New Password</label>
-                                    <div className="relative">
-                                        <Input
-                                            type={showPasswords.new ? "text" : "password"}
-                                            placeholder="••••••••"
-                                            value={passwordForm.new}
-                                            onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })}
-                                        />
-                                        <button
-                                            onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black dark:hover:text-white"
-                                        >
-                                            {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-3">
-                                    <label className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 ml-4">Confirm Password</label>
-                                    <div className="relative">
-                                        <Input
-                                            type={showPasswords.confirm ? "text" : "password"}
-                                            placeholder="••••••••"
-                                            value={passwordForm.confirm}
-                                            onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
-                                        />
-                                        <button
-                                            onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black dark:hover:text-white"
-                                        >
-                                            {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <Button variant="outline" className="flex-1" onClick={() => { setShowPasswordModal(false); setPasswordError(''); }}>Cancel</Button>
-                                <Button className="flex-1" onClick={handlePasswordSubmit} disabled={loading}>
-                                    {loading ? 'Updating...' : 'Update Password'}
-                                </Button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* Logout Confirmation Modal */}
-            <AnimatePresence>
-                {showLogoutConfirm && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowLogoutConfirm(false)}
-                            className="absolute inset-0 bg-black/50 dark:bg-black/80 backdrop-blur-sm"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-10 flex flex-col gap-8 shadow-2xl"
-                        >
-                            <div className="flex flex-col gap-2">
-                                <h2 className="text-2xl font-bold uppercase tracking-tight text-black dark:text-white">Confirm Logout</h2>
-                                <p className="text-zinc-500 text-sm font-medium">You will be logged out from all active sessions.</p>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <Button variant="outline" className="flex-1" onClick={() => setShowLogoutConfirm(false)} disabled={loading}>Cancel</Button>
-                                <Button className="flex-1 bg-red-500 hover:bg-red-600" onClick={handleLogout} disabled={loading}>
-                                    {loading ? 'Logging out...' : 'Logout'}
-                                </Button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }
+

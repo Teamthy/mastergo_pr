@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { ArrowRight, Shield, Zap, Globe, LayoutDashboard } from "lucide-react";
+import { ArrowRight, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/AuthContext";
 import { useRouter } from "next/navigation";
@@ -12,6 +12,12 @@ export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  // Redirect authenticated users with completed onboarding to dashboard
+  useEffect(() => {
+    if (!loading && user && user.onboarding_status === "COMPLETED") {
+      router.replace("/dashboard/wallet");
+    }
+  }, [user, loading, router]);
 
   if (loading) return null;
 
@@ -48,14 +54,14 @@ export default function HomePage() {
             className="flex flex-wrap justify-center gap-4"
           >
             {user ? (
-              <Link href="/dashboard">
+              <Link href="/dashboard/wallet">
                 <button className="h-14 px-8 text-lg rounded-xl bg-black text-white flex items-center">
                   Go to Dashboard
                   <LayoutDashboard className="ml-2" size={20} />
                 </button>
               </Link>
             ) : (
-              <Link href="/auth">
+              <Link href="/auth/login">
                 <button className="h-14 px-8 text-lg rounded-xl bg-white text-black flex items-center">
                   ENTER MY APP
                   <ArrowRight className="ml-2" size={20} />
@@ -72,17 +78,16 @@ export default function HomePage() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {[
           {
-            icon: Shield,
-            title: "Identity Sovereignty",
+
+            title: "STATE AUTH FLOW",
             description: "State-Flow Auth onboarding System with OTP service."
           },
           {
-            icon: Zap,
             title: "Developer API Service",
             description: "API management with hashed secrets."
           },
           {
-            icon: Globe,
+
             title: "Ethereum Wallet",
             description: "Per-user Ethereum wallets with internal synchronization."
           }
@@ -95,9 +100,7 @@ export default function HomePage() {
             transition={{ delay: i * 0.1 }}
             className="p-8 rounded-3xl bg-zinc-50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-900 flex flex-col gap-6"
           >
-            <div className="w-12 h-12 rounded-2xl bg-white dark:bg-zinc-900 flex items-center justify-center">
-              <feature.icon size={24} />
-            </div>
+
 
             <div>
               <h3 className="text-xl font-bold uppercase">

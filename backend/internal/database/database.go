@@ -37,7 +37,7 @@ func NewPostgresConnection(dbURL string) (*pgxpool.Pool, error) {
 		return nil, err
 	}
 
-	// Ping to verify connection
+	// Ping to verify postgres connection
 	if err := pool.Ping(ctx); err != nil {
 		return nil, err
 	}

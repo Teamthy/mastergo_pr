@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/AuthContext";
 import { ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
@@ -8,12 +8,19 @@ import Link from "next/link";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    // Auto-redirect to dashboard if already logged in with completed onboarding
+    useEffect(() => {
+        if (user && user.onboarding_status === "COMPLETED") {
+            router.replace("/dashboard/wallet");
+        }
+    }, [user, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -27,7 +34,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             await login(email.toLowerCase().trim(), password);
-            // Redirect will be handled by auth context
+            // After login, the useEffect above will handle the redirect
         } catch (err: any) {
             const errorMsg = err.response?.data?.message || err.message || "Login failed";
             setError(errorMsg);
@@ -63,7 +70,7 @@ export default function LoginPage() {
                                 if (error) setError(null);
                             }}
                             placeholder="your@email.com"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder-gray-500 bg-white"
                         />
                     </div>
 
@@ -80,7 +87,7 @@ export default function LoginPage() {
                                     if (error) setError(null);
                                 }}
                                 placeholder="Enter your password"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900 placeholder-gray-500 bg-white"
                             />
                             <button
                                 type="button"

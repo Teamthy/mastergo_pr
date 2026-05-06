@@ -110,24 +110,8 @@ export default function SignupFlow() {
         setLoading(true);
 
         try {
-            // Wait a moment for email verification to be processed
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // Login first to get JWT token
-            try {
-                await login(state.context.email, state.context.password);
-            } catch (loginErr: any) {
-                const loginErrorMsg = loginErr.response?.data?.message || loginErr.message;
-                // If login fails, provide helpful error
-                if (loginErrorMsg && loginErrorMsg.includes("verify")) {
-                    throw new Error("Please verify your email first. Go back and check your OTP.");
-                } else if (loginErrorMsg && loginErrorMsg.includes("credentials")) {
-                    throw new Error("Email or password is incorrect. Please go back and re-enter your credentials.");
-                }
-                throw loginErr;
-            }
-
-            // Then update profile with authenticated session
+            // After OTP verification, we already have a token from verifyEmail
+            // No need to login again - just update profile directly
             await updateProfile(phone, address);
             send({
                 type: "SUBMIT_PROFILE",
@@ -153,55 +137,62 @@ export default function SignupFlow() {
     };
 
     return (
-        <div className="space-y-6">
-            {/* Error Alert */}
-            {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-sm text-red-800 font-medium">Error</p>
-                    <p className="text-sm text-red-700">{error}</p>
+        <div className="w-full max-w-md mx-auto">
+            <div className="space-y-6">
+                {/* Header */}
+                <div className="text-center">
+                    <h1 className="text-3xl font-bold tracking-tight mb-2">Create Account</h1>
+                    <p className="text-gray-600">Sign up to get started</p>
                 </div>
-            )}
 
-            {/* Name Step */}
-            {state.value === "name" && (
-                <NameStep onSubmit={handleNameSubmit} isLoading={loading} />
-            )}
+                {/* Error Alert */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p className="text-sm text-red-700">{error}</p>
+                    </div>
+                )}
 
-            {/* Credentials Step */}
-            {state.value === "credentials" && (
-                <CredentialsStep
-                    onSubmit={handleCredentialsSubmit}
-                    onBack={handleBack}
-                    isLoading={loading}
-                    initialEmail={state.context.email}
-                />
-            )}
+                {/* Name Step */}
+                {state.value === "name" && (
+                    <NameStep onSubmit={handleNameSubmit} isLoading={loading} />
+                )}
 
-            {/* OTP Step */}
-            {state.value === "otp" && (
-                <OTPStep
-                    onSubmit={handleOTPSubmit}
-                    onBack={handleBack}
-                    onResendOTP={handleResendOTP}
-                    isLoading={loading}
-                    countdown={otpCountdown}
-                    email={state.context.email}
-                />
-            )}
+                {/* Credentials Step */}
+                {state.value === "credentials" && (
+                    <CredentialsStep
+                        onSubmit={handleCredentialsSubmit}
+                        onBack={handleBack}
+                        isLoading={loading}
+                        initialEmail={state.context.email}
+                    />
+                )}
 
-            {/* Profile Step */}
-            {state.value === "profile" && (
-                <ProfileStep
-                    onSubmit={handleProfileSubmit}
-                    onBack={handleBack}
-                    isLoading={loading}
-                />
-            )}
+                {/* OTP Step */}
+                {state.value === "otp" && (
+                    <OTPStep
+                        onSubmit={handleOTPSubmit}
+                        onBack={handleBack}
+                        onResendOTP={handleResendOTP}
+                        isLoading={loading}
+                        countdown={otpCountdown}
+                        email={state.context.email}
+                    />
+                )}
 
-            {/* Completed */}
-            {state.value === "completed" && (
-                <CompletedStep onDone={() => router.push("/dashboard/wallet")} />
-            )}
+                {/* Profile Step */}
+                {state.value === "profile" && (
+                    <ProfileStep
+                        onSubmit={handleProfileSubmit}
+                        onBack={handleBack}
+                        isLoading={loading}
+                    />
+                )}
+
+                {/* Completed */}
+                {state.value === "completed" && (
+                    <CompletedStep onDone={() => router.push("/dashboard/wallet")} />
+                )}
+            </div>
         </div>
     );
 }

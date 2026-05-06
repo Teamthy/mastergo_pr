@@ -8,8 +8,10 @@ import { ApiKey } from "@/lib/types";
 import { fetchJSON } from "@/lib/fetcher";
 import { apiFetch, apiKeyAPI } from "@/lib/api";
 import { useAuth } from "@/lib/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function ApiKeysPage() {
+    const router = useRouter();
     const { token } = useAuth();
     const [keys, setKeys] = useState<ApiKey[]>([]);
     const [loading, setLoading] = useState(true);
@@ -204,7 +206,7 @@ export default function ApiKeysPage() {
                         </div>
                         <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed max-w-2xl">
                             This secret key will be shown <span className="text-black dark:text-white font-bold underline">only once</span>.
-                            If you lose it, you must regenerate the key. Vanguard does not store plain-text secrets.
+                            If you lose it, you must regenerate the key. We do not store plain-text secrets.
                         </p>
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-1 bg-zinc-50 dark:bg-black rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 flex items-center justify-between group">
@@ -226,7 +228,10 @@ export default function ApiKeysPage() {
                                 </button>
                             </div>
                         </div>
-                        <Button variant="secondary" className="self-end" onClick={() => setNewKeyData(null)}>
+                        <Button variant="secondary" className="self-end" onClick={() => {
+                            setNewKeyData(null);
+                            loadKeys();
+                        }}>
                             I've stored it safely
                         </Button>
                     </motion.div>

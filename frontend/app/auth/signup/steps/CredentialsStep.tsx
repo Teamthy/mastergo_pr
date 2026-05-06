@@ -87,11 +87,10 @@ export default function CredentialsStep({
             if (errors.email) setErrors({ ...errors, email: '' });
           }}
           placeholder="your@email.com"
-          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-            errors.email
+          className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder-gray-500 bg-white ${errors.email
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-indigo-500'
-          }`}
+            }`}
         />
         {errors.email && (
           <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -111,11 +110,10 @@ export default function CredentialsStep({
               if (errors.password) setErrors({ ...errors, password: '' });
             }}
             placeholder="Enter strong password"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-              errors.password
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder-gray-500 bg-white ${errors.password
                 ? 'border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:ring-indigo-500'
-            }`}
+              }`}
           />
           <button
             type="button"
@@ -145,11 +143,10 @@ export default function CredentialsStep({
               if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' });
             }}
             placeholder="Confirm password"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-              errors.confirmPassword
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder-gray-500 bg-white ${errors.confirmPassword
                 ? 'border-red-500 focus:ring-red-500'
                 : 'border-gray-300 focus:ring-indigo-500'
-            }`}
+              }`}
           />
           <button
             type="button"

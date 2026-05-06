@@ -35,8 +35,6 @@ func makeRequest(t *testing.T, method, path string, body interface{}) (*httptest
 	return w, string(bodyBytes)
 }
 
-// ============= AUTHENTICATION TESTS =============
-
 func TestSignup(t *testing.T) {
 	req := models.SignUpRequest{
 		FirstName:       "Test",
@@ -98,8 +96,6 @@ func TestGetProfile(t *testing.T) {
 	}
 }
 
-// ============= PASSWORD RESET TESTS =============
-
 func TestRequestPasswordReset(t *testing.T) {
 	req := models.PasswordResetRequest{
 		Email: "test@example.com",
@@ -142,8 +138,6 @@ func TestResetPassword(t *testing.T) {
 		t.Errorf("Expected status 200 or 400, got %d", w.Code)
 	}
 }
-
-// ============= WALLET TESTS =============
 
 func TestCreateWallet(t *testing.T) {
 	w, _ := makeRequest(t, "POST", "/api/v1/wallet/create", map[string]interface{}{})
@@ -195,8 +189,6 @@ func TestGetTransactions(t *testing.T) {
 	}
 }
 
-// ============= API KEY TESTS =============
-
 func TestCreateAPIKey(t *testing.T) {
 	req := map[string]interface{}{
 		"name": "Test API Key",
@@ -232,8 +224,6 @@ func TestListAPIKeys(t *testing.T) {
 		t.Errorf("Expected status 200 or 401, got %d", w.Code)
 	}
 }
-
-// ============= WEBHOOK TESTS =============
 
 func TestCreateWebhook(t *testing.T) {
 	req := models.CreateWebhookRequest{
@@ -273,8 +263,6 @@ func TestListWebhooks(t *testing.T) {
 		t.Errorf("Expected status 200 or 401, got %d", w.Code)
 	}
 }
-
-// ============= ANALYTICS TESTS =============
 
 func TestGetAPIAnalytics(t *testing.T) {
 	// Replace with actual API key ID
@@ -317,8 +305,6 @@ func TestGetUserAnalytics(t *testing.T) {
 	}
 }
 
-// ============= AUDIT LOG TESTS =============
-
 func TestGetAuditLogs(t *testing.T) {
 	w, _ := makeRequest(t, "GET", "/api/v1/audit/logs?limit=50&offset=0", nil)
 
@@ -351,8 +337,6 @@ func TestGetAuditSummary(t *testing.T) {
 		t.Errorf("Expected status 200 or 401, got %d", w.Code)
 	}
 }
-
-// ============= PERFORMANCE TESTS =============
 
 func TestAuthenticationPerformance(t *testing.T) {
 	start := time.Now()

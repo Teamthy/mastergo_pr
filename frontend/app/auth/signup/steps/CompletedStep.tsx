@@ -30,13 +30,6 @@ export default function CompletedStep({ onDone }: CompletedStepProps) {
       </p>
 
 
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <p className="text-sm text-green-800">
-          ✓ Email verified<br />
-          ✓ Profile completed<br />
-
-        </p>
-      </div>
 
       <button
         onClick={onDone}

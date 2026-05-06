@@ -59,11 +59,10 @@ export default function OTPStep({
           }}
           placeholder="000000"
           maxLength={6}
-          className={`w-full px-4 py-2 text-2xl text-center tracking-widest font-mono border rounded-lg focus:outline-none focus:ring-2 ${
-            error
+          className={`w-full px-4 py-2 text-2xl text-center tracking-widest font-mono border rounded-lg focus:outline-none focus:ring-2 text-gray-900 placeholder-gray-500 bg-white ${error
               ? 'border-red-500 focus:ring-red-500'
               : 'border-gray-300 focus:ring-indigo-500'
-          }`}
+            }`}
         />
         {error && (
           <p className="mt-1 text-sm text-red-600">{error}</p>
