@@ -46,7 +46,6 @@ const apiRequest = async (
 };
 
 export const authAPI = {
-  // Signup with name, email, and password
   signup: async (data: {
     first_name: string;
     last_name: string;
@@ -57,22 +56,18 @@ export const authAPI = {
     return apiRequest("POST", `${API}/auth/signup`, data);
   },
 
-  // Login with email and password
   login: async (email: string, password: string) => {
     return apiRequest("POST", `${API}/auth/login`, { email, password });
   },
 
-  // Verify email with OTP
   verifyEmail: async (email: string, otp: string) => {
     return apiRequest("POST", `${API}/auth/verify-email`, { email, otp });
   },
 
-  // Resend OTP
   resendOTP: async (email: string) => {
     return apiRequest("POST", `${API}/auth/resend-otp`, { email });
   },
 
-  // Get current user profile (requires authentication)
   me: async (token: string) => {
     return apiRequest("GET", `${API}/auth/me`, undefined, token);
   },
