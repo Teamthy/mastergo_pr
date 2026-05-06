@@ -76,7 +76,7 @@ func main() {
 			"http://localhost:3000",
 			"http://127.0.0.1:3001",
 			"http://127.0.0.1:3000",
-			"https://your-frontend-url.onrender.com",
+			"https://mastergo-pr-1.onrender.com",
 		},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-Requested-With"},
