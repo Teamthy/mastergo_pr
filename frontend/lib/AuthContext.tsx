@@ -42,12 +42,12 @@ const AuthContext = createContext<AuthContextType>({
   token: null,
   loading: true,
   error: null,
-  login: async () => {},
-  signup: async () => {},
-  verifyEmail: async () => {},
-  resendOTP: async () => {},
-  updateProfile: async () => {},
-  logout: () => {},
+  login: async () => { },
+  signup: async () => { },
+  verifyEmail: async () => { },
+  resendOTP: async () => { },
+  updateProfile: async () => { },
+  logout: () => { },
   checkEmailAvailable: async () => false,
   getPasswordStrength: async () => "weak",
 });
@@ -125,8 +125,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const verifyEmail = async (email: string, otp: string) => {
     try {
       setError(null);
-      await authAPI.verifyEmail(email, otp);
-      // After verification, auto-login will be handled by the frontend flow
+      const response = await authAPI.verifyEmail(email, otp);
+
+      // After verification, we receive a token - store it for authenticated requests
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+        setToken(response.token);
+        setUser(response.user);
+      }
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || err.message || "Verification failed";
       setError(errorMsg);
