@@ -116,6 +116,52 @@ func (s *EmailService) SendOTPEmail(toEmail, otp string) error {
 	return nil
 }
 
+// SendOTPEmailAsync sends OTP email asynchronously (non-blocking)
+func (s *EmailService) SendOTPEmailAsync(toEmail, otp string) {
+	go func() {
+		subject := "Verify Your Email - MasterGo"
+		plainTextContent := fmt.Sprintf("Your verification code is: %s. It will expire in 5 minutes.", otp)
+		htmlContent := fmt.Sprintf(`
+			<html>
+				<body>
+					<h2>Email Verification</h2>
+					<p>Your verification code is:</p>
+					<h1 style="color: #007bff;">%s</h1>
+					<p>This code will expire in 10 minutes.</p>
+					<p>If you didn't request this, please ignore this email.</p>
+				</body>
+			</html>
+		`, otp)
+
+		// Try SMTP first (real email sending)
+		if s.useSMTP {
+			err := s.sendViaSMTP(toEmail, subject, htmlContent, plainTextContent)
+			if err == nil {
+				return // Success
+			}
+			log.Printf("SMTP send failed, error: %v", err)
+			// Fall through to SendGrid or console fallback
+		}
+
+		// Fall back to SendGrid if configured
+		if s.apiKey != "" {
+			from := mail.NewEmail("MasterGo", s.fromEmail)
+			to := mail.NewEmail("", toEmail)
+			message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+			client := sendgrid.NewSendClient(s.apiKey)
+			_, err := client.Send(message)
+			if err == nil {
+				log.Printf("Email sent successfully to %s via SendGrid", toEmail)
+				return
+			}
+			log.Printf("SendGrid send failed: %v", err)
+		}
+
+		// Console fallback for development
+		log.Printf("📧 [EMAIL FALLBACK - CONSOLE] To: %s | Subject: %s | OTP: %s", toEmail, subject, otp)
+	}()
+}
+
 // SendPasswordResetEmail sends password reset link via SMTP or SendGrid
 func (s *EmailService) SendPasswordResetEmail(toEmail, resetLink string) error {
 	subject := "Reset Your Password - MasterGo"
@@ -160,6 +206,53 @@ func (s *EmailService) SendPasswordResetEmail(toEmail, resetLink string) error {
 	// Console fallback
 	log.Printf("📧 [EMAIL FALLBACK - CONSOLE] To: %s | Subject: %s | Link: %s", toEmail, subject, resetLink)
 	return nil
+}
+
+// SendPasswordResetEmailAsync sends password reset email asynchronously (non-blocking)
+func (s *EmailService) SendPasswordResetEmailAsync(toEmail, resetLink string) {
+	go func() {
+		subject := "Reset Your Password - MasterGo"
+		plainTextContent := fmt.Sprintf("Click here to reset your password: %s. Link expires in 1 hour.", resetLink)
+		htmlContent := fmt.Sprintf(`
+			<html>
+				<body>
+					<h2>Password Reset Request</h2>
+					<p>You requested a password reset. Click the link below to reset your password:</p>
+					<a href="%s" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+						Reset Password
+					</a>
+					<p>This link will expire in 1 hour.</p>
+					<p>If you didn't request this, please ignore this email.</p>
+				</body>
+			</html>
+		`, resetLink)
+
+		// Try SMTP first
+		if s.useSMTP {
+			err := s.sendViaSMTP(toEmail, subject, htmlContent, plainTextContent)
+			if err == nil {
+				return
+			}
+			log.Printf("SMTP send failed, error: %v", err)
+		}
+
+		// Fall back to SendGrid
+		if s.apiKey != "" {
+			from := mail.NewEmail("MasterGo", s.fromEmail)
+			to := mail.NewEmail("", toEmail)
+			message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+			client := sendgrid.NewSendClient(s.apiKey)
+			_, err := client.Send(message)
+			if err == nil {
+				log.Printf("Email sent successfully to %s via SendGrid", toEmail)
+				return
+			}
+			log.Printf("SendGrid send failed: %v", err)
+		}
+
+		// Console fallback
+		log.Printf("📧 [EMAIL FALLBACK - CONSOLE] To: %s | Subject: %s | Link: %s", toEmail, subject, resetLink)
+	}()
 }
 
 // SendAccountRecoveryEmail sends account recovery options via SMTP or SendGrid

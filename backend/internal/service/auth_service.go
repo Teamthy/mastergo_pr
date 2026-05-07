@@ -219,12 +219,9 @@ func (s *AuthService) Signup(ctx context.Context, req *models.SignUpRequest) (*m
 	attemptsKey := "otp_attempts:" + req.Email
 	s.rdb.Set(ctx, attemptsKey, 0, 5*time.Minute)
 
-	// Send OTP via email (real email sending)
+	// Send OTP via email asynchronously (non-blocking)
 	if s.emailService != nil {
-		if err := s.emailService.SendOTPEmail(req.Email, otp); err != nil {
-			log.Printf("Failed to send OTP email: %v", err)
-			// Don't fail signup if email sending fails - user can proceed
-		}
+		s.emailService.SendOTPEmailAsync(req.Email, otp)
 	}
 
 	log.Printf("OTP DEBUG KEY=%s OTP=%s", key, otp)
@@ -423,12 +420,9 @@ func (s *AuthService) ResendOTP(ctx context.Context, email string) error {
 		return fmt.Errorf("failed to set otp cooldown: %w", err)
 	}
 
-	// Send OTP via email (real email sending)
+	// Send OTP via email asynchronously (non-blocking)
 	if s.emailService != nil {
-		if err := s.emailService.SendOTPEmail(email, otp); err != nil {
-			log.Printf("Failed to send OTP email: %v", err)
-			// Don't fail resend if email sending fails
-		}
+		s.emailService.SendOTPEmailAsync(email, otp)
 	}
 
 	log.Printf("OTP RESEND DEBUG KEY=%s", key)

@@ -52,9 +52,10 @@ func (s *PasswordResetService) RequestPasswordReset(ctx context.Context, email s
 		return fmt.Errorf("failed to create reset token: %w", err)
 	}
 
-	// Send reset email
+	// Send reset email asynchronously (non-blocking)
 	resetLink := fmt.Sprintf("%s/auth/reset-password?token=%s", frontendURL, token)
-	return s.emailService.SendPasswordResetEmail(user.Email, resetLink)
+	s.emailService.SendPasswordResetEmailAsync(user.Email, resetLink)
+	return nil
 }
 
 // ValidateResetToken validates a reset token
