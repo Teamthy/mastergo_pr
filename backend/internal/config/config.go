@@ -17,6 +17,12 @@ type Config struct {
 	SendGridAPIKey string
 	SendGridEmail  string
 	FrontendURL    string
+	// SMTP Configuration (for real email sending - Nodemailer-like)
+	SMTPHost     string
+	SMTPPort     string
+	SMTPUsername string
+	SMTPPassword string
+	FromEmail    string
 }
 
 func Load() *Config {
@@ -32,9 +38,15 @@ func Load() *Config {
 		JWTSecret:      getEnv("JWT_SECRET", ""),
 		MasterKey:      getEnv("MASTER_KEY", ""),
 		EthRPCURL:      getEnv("ETH_RPC_URL", "http://localhost:8545"),
-		
-		
+		SendGridAPIKey: getEnv("SENDGRID_API_KEY", ""),
+		SendGridEmail:  getEnv("SENDGRID_FROM_EMAIL", "noreply@mastergo.app"),
 		FrontendURL:    getEnv("FRONTEND_URL", "http://localhost:3000"),
+		// SMTP Configuration
+		SMTPHost:     getEnv("SMTP_HOST", ""),
+		SMTPPort:     getEnv("SMTP_PORT", "587"),
+		SMTPUsername: getEnv("SMTP_USERNAME", ""),
+		SMTPPassword: getEnv("SMTP_PASSWORD", ""),
+		FromEmail:    getEnv("FROM_EMAIL", "noreply@mastergo.app"),
 	}
 
 	// i use this to Validate required environment variables for production

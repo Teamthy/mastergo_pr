@@ -21,9 +21,10 @@ import (
 )
 
 type AuthService struct {
-	repo      *repository.UserRepository
-	rdb       *redis.Client
-	jwtSecret string
+	repo         *repository.UserRepository
+	rdb          *redis.Client
+	jwtSecret    string
+	emailService *EmailService
 }
 
 type PasswordStrength string
@@ -34,11 +35,12 @@ const (
 	PasswordStrong PasswordStrength = "strong"
 )
 
-func NewAuthService(repo *repository.UserRepository, rdb *redis.Client, jwtSecret string) *AuthService {
+func NewAuthService(repo *repository.UserRepository, rdb *redis.Client, jwtSecret string, emailService *EmailService) *AuthService {
 	return &AuthService{
-		repo:      repo,
-		rdb:       rdb,
-		jwtSecret: jwtSecret,
+		repo:         repo,
+		rdb:          rdb,
+		jwtSecret:    jwtSecret,
+		emailService: emailService,
 	}
 }
 
@@ -217,8 +219,16 @@ func (s *AuthService) Signup(ctx context.Context, req *models.SignUpRequest) (*m
 	attemptsKey := "otp_attempts:" + req.Email
 	s.rdb.Set(ctx, attemptsKey, 0, 5*time.Minute)
 
+	// Send OTP via email (real email sending)
+	if s.emailService != nil {
+		if err := s.emailService.SendOTPEmail(req.Email, otp); err != nil {
+			log.Printf("Failed to send OTP email: %v", err)
+			// Don't fail signup if email sending fails - user can proceed
+		}
+	}
+
 	log.Printf("OTP DEBUG KEY=%s OTP=%s", key, otp)
-	fmt.Printf("\n--- [MOCK EMAIL] ---\nTo: %s\nOTP: %s\n--------------------\n\n", req.Email, otp)
+	fmt.Printf("\n--- [MOCK EMAIL FALLBACK] ---\nTo: %s\nOTP: %s\n--------------------\n\n", req.Email, otp)
 
 	return user, nil
 }
@@ -249,6 +259,25 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	user.LastLoginAt = &now
 	if err := s.repo.Update(ctx, user); err != nil {
 		log.Printf("warning: failed to update last login: %v", err)
+	}
+
+	return token, user, nil
+}
+
+// LoginWithNotification performs login and sends notification email
+func (s *AuthService) LoginWithNotification(ctx context.Context, email, password, ipAddress string) (string, *models.User, error) {
+	token, user, err := s.Login(ctx, email, password)
+	if err != nil {
+		return "", nil, err
+	}
+
+	// Send login notification email
+	if s.emailService != nil && user != nil {
+		userName := fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+		if err := s.emailService.SendLoginNotificationEmail(email, userName, ipAddress); err != nil {
+			log.Printf("Failed to send login notification email: %v", err)
+			// Don't fail login if email sending fails
+		}
 	}
 
 	return token, user, nil
@@ -297,6 +326,15 @@ func (s *AuthService) VerifyEmail(ctx context.Context, email, code string) (*mod
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve user: %w", err)
+	}
+
+	// Send welcome email after successful verification
+	if s.emailService != nil {
+		userName := fmt.Sprintf("%s %s", user.FirstName, user.LastName)
+		if err := s.emailService.SendWelcomeEmail(email, userName); err != nil {
+			log.Printf("Failed to send welcome email: %v", err)
+			// Don't fail verification if welcome email fails
+		}
 	}
 
 	return user, nil
@@ -385,8 +423,16 @@ func (s *AuthService) ResendOTP(ctx context.Context, email string) error {
 		return fmt.Errorf("failed to set otp cooldown: %w", err)
 	}
 
+	// Send OTP via email (real email sending)
+	if s.emailService != nil {
+		if err := s.emailService.SendOTPEmail(email, otp); err != nil {
+			log.Printf("Failed to send OTP email: %v", err)
+			// Don't fail resend if email sending fails
+		}
+	}
+
 	log.Printf("OTP RESEND DEBUG KEY=%s", key)
-	fmt.Printf("\n--- [MOCK EMAIL] ---\nTo: %s\nOTP: %s\n--------------------\n\n", email, otp)
+	fmt.Printf("\n--- [MOCK EMAIL FALLBACK] ---\nTo: %s\nOTP: %s\n--------------------\n\n", email, otp)
 
 	return nil
 }
