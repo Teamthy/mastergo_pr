@@ -51,7 +51,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, user, err := h.authService.Login(r.Context(), req.Email, req.Password)
+	// Extract client IP address
+	ipAddress := r.Header.Get("X-Forwarded-For")
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
+	}
+
+	token, user, err := h.authService.LoginWithNotification(r.Context(), req.Email, req.Password, ipAddress)
 	if err != nil {
 		// Log login attempt for security audit
 		logLoginAttempt(r, req.Email, false)

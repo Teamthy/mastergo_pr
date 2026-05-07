@@ -46,7 +46,23 @@ func main() {
 	apiKeyRepo := repository.NewApiKeyRepository(db)
 	walletRepo := repository.NewWalletRepository(db)
 
-	authService := service.NewAuthService(userRepo, rdb, cfg.JWTSecret)
+	// Initialize Email Service - use SMTP if configured, otherwise use SendGrid or console fallback
+	var emailService *service.EmailService
+	if cfg.SMTPHost != "" && cfg.SMTPUsername != "" && cfg.SMTPPassword != "" {
+		// Use SMTP for real email sending
+		emailService = service.NewEmailServiceWithSMTP(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername, cfg.SMTPPassword, cfg.FromEmail)
+		log.Println("📧 Email Service initialized with SMTP:", cfg.SMTPHost)
+	} else if cfg.SendGridAPIKey != "" {
+		// Use SendGrid as fallback
+		emailService = service.NewEmailService(cfg.SendGridAPIKey, cfg.SendGridEmail)
+		log.Println("📧 Email Service initialized with SendGrid")
+	} else {
+		// Use console fallback for development
+		emailService = service.NewEmailService("", cfg.FromEmail)
+		log.Println("⚠️  Email Service in FALLBACK mode (console logging) - configure SMTP_HOST or SENDGRID_API_KEY for production")
+	}
+
+	authService := service.NewAuthService(userRepo, rdb, cfg.JWTSecret, emailService)
 	apiKeyService := service.NewApiKeyService(apiKeyRepo)
 
 	walletService, err := service.NewWalletService(walletRepo, key, cfg.EthRPCURL)
