@@ -1,6 +1,7 @@
 package service
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net/smtp"
@@ -41,7 +42,7 @@ func NewEmailServiceWithSMTP(smtpHost, smtpPort, smtpUsername, smtpPassword, fro
 	}
 }
 
-// sendViaSMTP sends email using SMTP (real email sending)
+// sendViaSMTP sends email using SMTP with STARTTLS (required for Brevo)
 func (s *EmailService) sendViaSMTP(toEmail, subject, htmlContent, plainTextContent string) error {
 	if s.smtpHost == "" || s.smtpPort == "" {
 		return fmt.Errorf("SMTP configuration not set")
@@ -58,16 +59,58 @@ func (s *EmailService) sendViaSMTP(toEmail, subject, htmlContent, plainTextConte
 	)
 
 	// Connect to SMTP server
-	auth := smtp.PlainAuth("", s.smtpUsername, s.smtpPassword, s.smtpHost)
 	addr := s.smtpHost + ":" + s.smtpPort
 
-	err := smtp.SendMail(addr, auth, s.fromEmail, []string{toEmail}, []byte(message))
+	// Dial connection (without TLS initially)
+	conn, err := smtp.Dial(addr)
 	if err != nil {
-		log.Printf("SMTP Error: %v", err)
-		return err
+		log.Printf("SMTP Dial Error: %v", err)
+		return fmt.Errorf("SMTP connection failed: %w", err)
+	}
+	defer conn.Close()
+
+	// Use STARTTLS to upgrade connection to TLS (required by Brevo)
+	tlsConfig := &tls.Config{
+		ServerName: s.smtpHost,
+		MinVersion: tls.VersionTLS12,
 	}
 
-	log.Printf("Email sent successfully to %s via SMTP", toEmail)
+	if err = conn.StartTLS(tlsConfig); err != nil {
+		log.Printf("SMTP StartTLS Error: %v", err)
+		return fmt.Errorf("STARTTLS failed: %w", err)
+	}
+
+	// Authenticate with credentials
+	auth := smtp.PlainAuth("", s.smtpUsername, s.smtpPassword, s.smtpHost)
+	if err = conn.Auth(auth); err != nil {
+		log.Printf("SMTP Auth Error: %v", err)
+		return fmt.Errorf("SMTP authentication failed: %w", err)
+	}
+
+	// Send email
+	if err = conn.Mail(s.fromEmail); err != nil {
+		log.Printf("SMTP Mail Error: %v", err)
+		return fmt.Errorf("SMTP Mail command failed: %w", err)
+	}
+
+	if err = conn.Rcpt(toEmail); err != nil {
+		log.Printf("SMTP Rcpt Error: %v", err)
+		return fmt.Errorf("SMTP Rcpt command failed: %w", err)
+	}
+
+	wc, err := conn.Data()
+	if err != nil {
+		log.Printf("SMTP Data Error: %v", err)
+		return fmt.Errorf("SMTP Data command failed: %w", err)
+	}
+	defer wc.Close()
+
+	if _, err = wc.Write([]byte(message)); err != nil {
+		log.Printf("SMTP Write Error: %v", err)
+		return fmt.Errorf("SMTP message write failed: %w", err)
+	}
+
+	log.Printf("✅ Email sent successfully to %s via SMTP (Brevo)", toEmail)
 	return nil
 }
 
