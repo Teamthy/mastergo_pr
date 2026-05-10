@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/smtp"
+	"time"
 
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -49,13 +50,18 @@ func (s *EmailService) sendViaSMTP(toEmail, subject, htmlContent, plainTextConte
 	}
 
 	// Create message with both plain text and HTML
+	boundary := "boundary_mastergo_" + fmt.Sprintf("%d", time.Now().UnixNano())
 	message := fmt.Sprintf(
-		"From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary=boundary123\r\n\r\n--boundary123\r\nContent-Type: text/plain; charset=\"UTF-8\"\r\n\r\n%s\r\n\r\n--boundary123\r\nContent-Type: text/html; charset=\"UTF-8\"\r\n\r\n%s\r\n\r\n--boundary123--\r\n",
+		"From: %s\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: multipart/alternative; boundary=\"%s\"\r\n\r\n--%s\r\nContent-Type: text/plain; charset=\"UTF-8\"\r\nContent-Transfer-Encoding: 7bit\r\n\r\n%s\r\n\r\n--%s\r\nContent-Type: text/html; charset=\"UTF-8\"\r\nContent-Transfer-Encoding: 7bit\r\n\r\n%s\r\n\r\n--%s--\r\n",
 		s.fromEmail,
 		toEmail,
 		subject,
+		boundary,
+		boundary,
 		plainTextContent,
+		boundary,
 		htmlContent,
+		boundary,
 	)
 
 	// Connect to SMTP server
@@ -108,6 +114,12 @@ func (s *EmailService) sendViaSMTP(toEmail, subject, htmlContent, plainTextConte
 	if _, err = wc.Write([]byte(message)); err != nil {
 		log.Printf("SMTP Write Error: %v", err)
 		return fmt.Errorf("SMTP message write failed: %w", err)
+	}
+
+	// Quit SMTP connection properly
+	if err = conn.Quit(); err != nil {
+		log.Printf("SMTP Quit Error: %v", err)
+		return fmt.Errorf("SMTP quit failed: %w", err)
 	}
 
 	log.Printf("✅ Email sent successfully to %s via SMTP (Brevo)", toEmail)
