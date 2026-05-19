@@ -11,8 +11,7 @@ MasterGo provides:
 - webhook delivery pipelines
 - audit logging and rate limiting
 
-Live Demo:
-"mastergo-pr-1.onrender.com" (https://reference-url-citation.invalid/0)
+
 
 ---
 
@@ -94,26 +93,6 @@ Infrastructure
 
 ---
 
-Project Structure
-
-backend/
-├── cmd/
-├── internal/
-│   ├── auth/
-│   ├── wallet/
-│   ├── apikey/
-│   ├── middleware/
-│   ├── repository/
-│   └── service/
-
-frontend/
-├── app/
-├── components/
-├── lib/
-└── styles/
-
----
-
 API Surface
 
 Auth
@@ -138,7 +117,7 @@ API Keys
 
 Local Development
 
-git clone <repo>
+git clone
 
 docker-compose up --build
 
